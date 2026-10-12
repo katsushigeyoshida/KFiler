@@ -1,0 +1,97 @@
+﻿<Window x:Class="KFiler.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:KFiler"
+        mc:Ignorable="d"
+        Title="KFiler" Height="400" Width="600"
+            Loaded="Window_Loaded" Closing="Window_Closing" PreviewKeyDown="Window_PreviewKeyDown">
+    <Grid>
+        <DockPanel>
+            <StatusBar DockPanel.Dock="Top" Height="30">
+                <TextBlock Text="お気に入り" Margin="10,0,0,0" />
+                <ComboBox Name="cbSelectFolder" Width="250" SelectionChanged="cbSelectFolder_SelectionChanged" />
+                <Button x:Name="btSelectFolder" Click="btSelectFolder_Click" ToolTip="表示中のフォルダをお気に入りに登録" >
+                    <Image Source="/Icon/DirGo.ico" Width="15" Height="15" />
+                </Button>
+
+            </StatusBar>
+            <StatusBar DockPanel.Dock="Bottom" Height="25">
+                <TextBlock Name="tbStatus" Text="状態" Margin="10,0,0,0" />
+            </StatusBar>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="40*" x:Name="directoryTree"/>
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="100*"/>
+                </Grid.ColumnDefinitions>
+                <TreeView Grid.Column="0" Name="tvComponent" SelectedItemChanged="tvComponent_SelectedItemChanged" >
+                </TreeView>
+                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
+                <ListView Grid.Column="2" Name="lvFileList" SelectionMode="Extended" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          SelectionChanged="lvFileList_SelectionChanged" MouseDoubleClick="lvFileList_MouseDoubleClick" 
+                          GridViewColumnHeader.Click="lvFileListColumnHeader_Click" >
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <!-- ListView の列（セル）に左揃え・中央揃え・右揃えを設定するのに必要な定義 -->
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Width="Auto" Header="名前">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Width="16" Height="16"  Source="{Binding mIcon}"></Image>
+                                            <TextBlock TextAlignment="Left" Text="{Binding mName}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="120" Header="日時">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock TextAlignment="Right" Text="{Binding mDateTime}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="Auto" Header="サイズ">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Width="Auto" HorizontalAlignment="Right" Text="{Binding mSize}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Width="Auto" Header="属性">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock HorizontalAlignment="Left" Text="{Binding mAttribute}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
+                    </ListView.View>
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Name="lvCopyMenu" Header="コピー" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvMoveMenu" Header="移動" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvRenameMenu" Header="名前の変更" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvRemoveMenu" Header="削除" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvMkdirMenu" Header="フォルダ作成" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvCompressMenu" Header="圧縮" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvCopyPathMenu" Header="パスコピー" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvCopyNameMenu" Header="名前コピー" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvOpenMenu" Header="開く" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvPropertyMenu" Header="プロパティ" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvTerminalMenu" Header="ターミナルで開く" Click="lvFileList_MenuItem_Click" />
+
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                </ListView>
+            </Grid>
+
+        </DockPanel>
+    </Grid>
+</Window>

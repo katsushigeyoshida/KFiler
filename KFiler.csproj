@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <ApplicationIcon>Icon\KFiler.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Icon\Computer.ico" />
+    <None Remove="Icon\DirGo.ico" />
+    <None Remove="Icon\Document.png" />
+    <None Remove="Icon\FolderClose.ico" />
+    <None Remove="Icon\FolderOpened.png" />
+    <None Remove="Icon\HardDisk.ico" />
+    <None Remove="Icon\Run.png" />
+    <None Remove="Icon\Save.png" />
+    <None Remove="Icon\SaveAs.png" />
+    <None Remove="Icon\Stop.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Icon\KFiler.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CoreLib\CoreLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Icon\Computer.ico" />
+    <Resource Include="Icon\DirGo.ico" />
+    <Resource Include="Icon\Document.png" />
+    <Resource Include="Icon\FolderClose.ico" />
+    <Resource Include="Icon\FolderOpened.png" />
+    <Resource Include="Icon\HardDisk.ico" />
+    <Resource Include="Icon\Run.png" />
+    <Resource Include="Icon\Save.png" />
+    <Resource Include="Icon\SaveAs.png" />
+    <Resource Include="Icon\Stop.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+</Project>
