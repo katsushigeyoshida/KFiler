@@ -10,19 +10,101 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Icon\AlignCenter.png" />
+    <None Remove="Icon\AlignHorizontalStretch.png" />
+    <None Remove="Icon\AlignLeft.png" />
+    <None Remove="Icon\AlignRight.png" />
+    <None Remove="Icon\BackgroundColor.png" />
+    <None Remove="Icon\bold.png" />
+    <None Remove="Icon\CaptureFrame.png" />
+    <None Remove="Icon\charactergrowfont.png" />
+    <None Remove="Icon\charactershrinkfont.png" />
+    <None Remove="Icon\close.png" />
+    <None Remove="Icon\color.png" />
+    <None Remove="Icon\Compare.gif" />
     <None Remove="Icon\Computer.ico" />
+    <None Remove="Icon\copy.png" />
+    <None Remove="Icon\cut.png" />
     <None Remove="Icon\DirGo.ico" />
     <None Remove="Icon\Document.png" />
+    <None Remove="Icon\EditCopy.png" />
+    <None Remove="Icon\EditCut.png" />
+    <None Remove="Icon\editpaste.png" />
+    <None Remove="Icon\editredo.png" />
+    <None Remove="Icon\editundo.png" />
+    <None Remove="Icon\eraser.png" />
+    <None Remove="Icon\fileopen.png" />
+    <None Remove="Icon\filesave.png" />
+    <None Remove="Icon\folder.png" />
     <None Remove="Icon\FolderClose.ico" />
     <None Remove="Icon\FolderOpened.png" />
+    <None Remove="Icon\FontColor.png" />
     <None Remove="Icon\HardDisk.ico" />
+    <None Remove="Icon\html.png" />
+    <None Remove="Icon\image.png" />
+    <None Remove="Icon\italic.png" />
+    <None Remove="Icon\listbullets.png" />
+    <None Remove="Icon\listnumbering.png" />
+    <None Remove="Icon\new.png" />
+    <None Remove="Icon\ok.png" />
+    <None Remove="Icon\open.png" />
+    <None Remove="Icon\paragraphcenterjustify.png" />
+    <None Remove="Icon\paragraphdecreaseindentation.png" />
+    <None Remove="Icon\paragraphfulljustify.png" />
+    <None Remove="Icon\paragraphincreaseindentation.png" />
+    <None Remove="Icon\paragraphleftjustify.png" />
+    <None Remove="Icon\paragraphrightjustify.png" />
+    <None Remove="Icon\paste.png" />
+    <None Remove="Icon\print.png" />
+    <None Remove="Icon\redo.png" />
     <None Remove="Icon\Run.png" />
     <None Remove="Icon\Save.png" />
     <None Remove="Icon\SaveAs.png" />
+    <None Remove="Icon\Screenshot.png" />
+    <None Remove="Icon\Search.gif" />
+    <None Remove="Icon\search.png" />
+    <None Remove="Icon\select-all.png" />
+    <None Remove="Icon\Settings.png" />
+    <None Remove="Icon\SortByColumn.png" />
+    <None Remove="Icon\StatusHelpOutline.png" />
     <None Remove="Icon\Stop.png" />
+    <None Remove="Icon\underline.png" />
+    <None Remove="Icon\undo.png" />
+    <None Remove="Icon\UpFolder.GIF" />
+    <None Remove="Icon\view.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Icon\Compare.gif" />
+    <Resource Include="Icon\editredo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Icon\AlignCenter.png" />
+    <Resource Include="Icon\AlignHorizontalStretch.png" />
+    <Resource Include="Icon\AlignLeft.png" />
+    <Resource Include="Icon\AlignRight.png" />
+    <Resource Include="Icon\BackgroundColor.png" />
+    <Resource Include="Icon\bold.png" />
+    <Resource Include="Icon\CaptureFrame.png" />
+    <Resource Include="Icon\charactergrowfont.png" />
+    <Resource Include="Icon\charactershrinkfont.png" />
+    <Resource Include="Icon\close.png" />
+    <Resource Include="Icon\color.png" />
+    <Resource Include="Icon\copy.png" />
+    <Resource Include="Icon\cut.png" />
+    <Resource Include="Icon\EditCopy.png" />
+    <Resource Include="Icon\EditCut.png" />
+    <Resource Include="Icon\editpaste.png" />
+    <Resource Include="Icon\editundo.png" />
+    <Resource Include="Icon\eraser.png" />
+    <Resource Include="Icon\fileopen.png" />
+    <Resource Include="Icon\filesave.png" />
+    <Resource Include="Icon\folder.png" />
+    <Resource Include="Icon\FontColor.png" />
+    <Resource Include="Icon\html.png" />
+    <Resource Include="Icon\image.png" />
+    <Resource Include="Icon\italic.png" />
     <Resource Include="Icon\KFiler.ico" />
   </ItemGroup>
 
@@ -37,10 +119,36 @@
     <Resource Include="Icon\FolderClose.ico" />
     <Resource Include="Icon\FolderOpened.png" />
     <Resource Include="Icon\HardDisk.ico" />
+    <Resource Include="Icon\listbullets.png" />
+    <Resource Include="Icon\listnumbering.png" />
+    <Resource Include="Icon\new.png" />
+    <Resource Include="Icon\ok.png" />
+    <Resource Include="Icon\open.png" />
+    <Resource Include="Icon\paragraphcenterjustify.png" />
+    <Resource Include="Icon\paragraphdecreaseindentation.png" />
+    <Resource Include="Icon\paragraphfulljustify.png" />
+    <Resource Include="Icon\paragraphincreaseindentation.png" />
+    <Resource Include="Icon\paragraphleftjustify.png" />
+    <Resource Include="Icon\paragraphrightjustify.png" />
+    <Resource Include="Icon\paste.png" />
+    <Resource Include="Icon\print.png" />
+    <Resource Include="Icon\redo.png" />
     <Resource Include="Icon\Run.png" />
     <Resource Include="Icon\Save.png" />
     <Resource Include="Icon\SaveAs.png" />
+    <Resource Include="Icon\Screenshot.png" />
+    <Resource Include="Icon\Search.gif" />
+    <Resource Include="Icon\search.png" />
+    <Resource Include="Icon\SearchWord.gif" />
+    <Resource Include="Icon\select-all.png" />
+    <Resource Include="Icon\Settings.png" />
+    <Resource Include="Icon\SortByColumn.png" />
+    <Resource Include="Icon\StatusHelpOutline.png" />
     <Resource Include="Icon\Stop.png" />
+    <Resource Include="Icon\underline.png" />
+    <Resource Include="Icon\undo.png" />
+    <Resource Include="Icon\UpFolder.GIF" />
+    <Resource Include="Icon\view.png" />
   </ItemGroup>
 
   <ItemGroup>

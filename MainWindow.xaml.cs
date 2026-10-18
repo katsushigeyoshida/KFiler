@@ -20,10 +20,13 @@ namespace KFiler
         private string mCurFolder = "";
         private ImageView mImageView;               //  イメージビューワーダイヤログ
         private FileCopyDialog mFileCopyDialog;     //  ファイルコピーダイヤログ
+        private DiffFolder mDiffFolder;             //  フォルダ比較ダイヤログ
         private string mFolderListPath = "FileExplorerFolderList.csv";  //  お気に入りフォルダリストの保存ファイルパス
         private string mTerminal = "pwsh.exe";      //  "cmd.exe", "powershell.exe"(powershell5.1)ls, "pwsh.exe"(powershell7)
         private string mCopyFolderListPath = "CopyFolderList.csv";  //  コピー先フォルダリストの保存ファイルパス
         private string mCompressFolderListPath = "CompressFolderList.csv";  //  圧縮先フォルダリストの保存ファイルパス
+
+        private InputBox mTextEditorDlg;            //  テキスト表示ダイヤログ
 
 
         private YLib ylib = new YLib();
@@ -37,10 +40,7 @@ namespace KFiler
 
             loadFolderList(mFolderListPath);
 
-            string computerName = Environment.MachineName;
-            mDirectoryTree = new DirectoryTree(null, "", computerName);
-            tvComponent.Items.Add(mDirectoryTree);
-
+            rootTree();
             mFileEntityList.getFileEntityList(null, "*.*");
             setFileListSortDisp();
             statusDisp();
@@ -55,6 +55,10 @@ namespace KFiler
         {
             if (mImageView != null)
                 mImageView.Close();
+            if (mFileCopyDialog != null)
+                mFileCopyDialog.Close();
+            if (mDiffFolder != null)
+                mDiffFolder.Close();
             saveFolderList(mFolderListPath);
             WindowFormSave();
         }
@@ -124,21 +128,24 @@ namespace KFiler
             }
         }
 
-
+        /// <summary>
+        /// ファイルリストの項目選択
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void lvFileList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             int index = lvFileList.SelectedIndex;
             if (0 <= index) {
                 string path = mFileEntityList.mFiles[index].mPath;
                 System.Diagnostics.Debug.WriteLine($"FileListSelect: {path}");
-                ContextMenu menu = lvFileList.ContextMenu;
-                //  メニュー表示選択
-                if (Directory.Exists(path)) {
-                    //  ディレクトリ選択時メニュー
-                    ((MenuItem)menu.Items[8]).Visibility = Visibility.Collapsed;    //  開く
-                } else {
-                    //  ファイル選択時メニュー
-                    ((MenuItem)menu.Items[8]).Visibility = Visibility.Visible;      //  開く
+                //  ファイルリストのメニュー表示切替
+                MenuItem item = getContextMenuHeaderIItem(lvFileList.ContextMenu, "lvOpenMenu");
+                if (item != null) {
+                    if (Directory.Exists(path))
+                        item.Visibility = Visibility.Collapsed;
+                    else
+                        item.Visibility = Visibility.Visible;
                 }
                 statusDisp();
             }
@@ -183,20 +190,26 @@ namespace KFiler
                 int index = lvFileList.SelectedIndex;
                 string path = mFileEntityList.mFiles[index].mPath;
                 if (menuItem.Name.CompareTo("lvCopyMenu") == 0) {
+                    //  コピー
+                    fileDropCopy(fileList);
+                } else if (menuItem.Name.CompareTo("lvCutMenu") == 0) {
+                    //  カット
+                    fileDropCopy(fileList, true);
+                } else if (menuItem.Name.CompareTo("lvFileCopyMenu") == 0) {
                     //  ファイルコピーダイヤログ
                     fileCopy(fileList);
-                } else if (menuItem.Name.CompareTo("lvMoveMenu") == 0) {
+                } else if (menuItem.Name.CompareTo("lvFileMoveMenu") == 0) {
                     //  ファイル移動ダイヤログ
                     fileCopy(fileList, true);
-                } else if (menuItem.Name.CompareTo("lvRenameMenu") == 0) {
+                } else if (menuItem.Name.CompareTo("lvFileRenameMenu") == 0) {
                     //  ファイル名変更ダイヤログ
                     fileRename(fileList);
                     fileListUpdate();
-                } else if (menuItem.Name.CompareTo("lvRemoveMenu") == 0) {
+                } else if (menuItem.Name.CompareTo("lvFileRemoveMenu") == 0) {
                     //  ファイル削除ダイヤログ
                     fileRemove(fileList);
                     fileListUpdate();
-                } else if (menuItem.Name.CompareTo("lvCompressMenu") == 0) {
+                } else if (menuItem.Name.CompareTo("lvFileCompressMenu") == 0) {
                     //  ファイル圧縮ダイヤログ
                     zipCompress(fileList);
                 } else if (menuItem.Name.CompareTo("lvCopyPathMenu") == 0) {
@@ -204,21 +217,26 @@ namespace KFiler
                 } else if (menuItem.Name.CompareTo("lvCopyNameMenu") == 0) {
 
                 } else if (menuItem.Name.CompareTo("lvOpenMenu") == 0) {
-                    //  開く
+                    //  ファイルを開く
                     Directory.SetCurrentDirectory(mCurFolder);
                     ylib.openUrl(path);
                 } else if (menuItem.Name.CompareTo("lvPropertyMenu") == 0) {
 
                 }
             }
+            //  ファイル選択無関係
             if (menuItem.Name.CompareTo("lvMkdirMenu") == 0) {
                 //  フォルダ作成
                 mkDirectory();
                 fileListUpdate();
+            } else if (menuItem.Name.CompareTo("lvPasteMenu") == 0) {
+                //  貼付け
+                fileDropPaste();
+                fileListUpdate();
             } else if (menuItem.Name.CompareTo("lvTerminalMenu") == 0) {
                 //  ターミナルで開く
                 Directory.SetCurrentDirectory(mCurFolder);
-                ylib.processStart("pwsh.exe", "");
+                ylib.processStart(mTerminal, "");
             }
             Directory.SetCurrentDirectory(curDir);
         }
@@ -237,33 +255,51 @@ namespace KFiler
                 foreach (FileEntity item in lvFileList.SelectedItems)
                     fileList.Add(item.mPath);
             }
-            if (0 <= lvFileList.SelectedIndex) {
+            int index = lvFileList.SelectedIndex;
+            if (0 <= index) {
                 //  ファイル選択
-                int index = lvFileList.SelectedIndex;
                 string path = mFileEntityList.mFiles[index].mPath;
                 if (e.KeyboardDevice.Modifiers == ModifierKeys.Control) {
                     //  Ctrl+ ?
                     switch (e.Key) {
-                        case Key.C: break;
+                        case Key.B: break;                                          //  Binary Editor
+                        case Key.C: fileDropCopy(fileList); break;                  //  クリップボードにファイルコピー
                         case Key.D: break;
-                        case Key.E: break;
+                        case Key.E: textFileOpen(path); break;                      //  Text Editor
                         case Key.G: break;
                         case Key.I: break;
                         case Key.M: break;
-                        case Key.O: openFile(path); break;                          //  開く
+                        case Key.O: openFile(path); break;                          //  ファイルを開く
+                        case Key.P: zipCompress(fileList); break;                   //  ファイル圧縮
                         case Key.S: break;
-                        case Key.V: break;
-                        case Key.X: break;
+                        case Key.U: fileListUpdate();  break;                       //  ファイルリストの更新
+                        case Key.X: fileDropCopy(fileList, true); break;            //  クリップボードのファイルカット
                     }
                 } else {
                     switch (e.Key) {
+                        case Key.B: break;      //  Binary Editor
                         case Key.C: fileCopy(fileList); break;                      //  ファイル転送ダイヤログ(コピー)
-                        case Key.D: fileRemove(fileList); break;                    //  ファイル削除ダイヤログ
-                        case Key.K: mkDirectory(); fileListUpdate(); break;         //  フォルダ作成ダイヤログ
+                        case Key.D: fileRemove(fileList); fileListUpdate(); break;  //  ファイル削除ダイヤログ
+                        case Key.E: break;                      //  Text Editor
                         case Key.M: fileCopy(fileList, true); break;                //  ファイル移動ダイヤログ
                         case Key.R: fileRename(fileList); fileListUpdate(); break;  //  ファイル名変更ダイヤログ
-                        case Key.Enter: openFile(path); break;                     //  開く(ImageViewer/extractZip)
+                        case Key.Enter: openFile(path); break;                      //  開く(ImageViewer/extractZip)
                     }
+                }
+            }
+            //  ファイル選択無関係
+            if (e.KeyboardDevice.Modifiers == ModifierKeys.Control) {
+                //  Ctrl+ ?
+                switch (e.Key) {
+                    case Key.E: if (index < 0) textFileOpen(""); break;                      //  Text Editor
+                    case Key.V: fileDropPaste(); fileListUpdate(); break;       //  クリップボードのファイル貼付け
+                }
+            } else {
+                switch (e.Key) {
+                    case Key.K: mkDirectory(); fileListUpdate(); break;         //  フォルダ作成ダイヤログ
+                    case Key.T: Directory.SetCurrentDirectory(mCurFolder);      //  ターミナルで開く
+                                ylib.processStart(mTerminal, "");
+                                break;
                 }
             }
         }
@@ -303,6 +339,65 @@ namespace KFiler
         }
 
         /// <summary>
+        /// ファイル操作ボタン
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btFileOpration_Click(object sender, RoutedEventArgs e)
+        {
+            List<string> fileList = new List<string>();
+            if (0 < lvFileList.SelectedItems.Count) {
+                //  複数選択
+                foreach (FileEntity item in lvFileList.SelectedItems)
+                    fileList.Add(item.mPath);
+            }
+
+            Button button = (Button)sender;
+            if (button.Name.CompareTo("btCopyFile") == 0) {
+                //  コピー操作(Ctrl+C)
+                fileDropCopy(fileList);
+            } else if (button.Name.CompareTo("btCutFile") == 0) {
+                //  切取り操作(Ctrl+X)
+                fileDropCopy(fileList, true);
+            } else if (button.Name.CompareTo("btPasteFile") == 0) {
+                //  貼付け操作(Ctrl+V)
+                fileDropPaste();
+                fileListUpdate();
+            } else if (button.Name.CompareTo("btCompareFolder") == 0) {
+                //  フォルダ比較
+                diffFolder();
+            } else if (button.Name.CompareTo("btFileSearch") == 0) {
+
+            } else if (button.Name.CompareTo("btGrep") == 0) {
+
+            } else if (button.Name.CompareTo("btUpFolder") == 0) {
+                //  上位フォルダに移動
+                mCurFolder = Path.GetDirectoryName(mCurFolder)!;
+                treeExpand(mCurFolder);
+            }
+        }
+
+        /// <summary>
+        /// 設定ボタン
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btSetting_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        /// <summary>
+        /// ヘルプボタン
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btHelp_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        /// <summary>
         /// ListViewのItemをダブルクリック
         /// </summary>
         /// <param name="sender"></param>
@@ -326,26 +421,41 @@ namespace KFiler
 
 
         /// <summary>
+        /// ディレクトリツリーのルート表示
+        /// </summary>
+        private void rootTree()
+        {
+            string computerName = Environment.MachineName;
+            mDirectoryTree = new DirectoryTree(null, "", computerName);
+            tvComponent.Items.Clear();
+            tvComponent.Items.Add(mDirectoryTree);
+        }
+
+        /// <summary>
         /// DirectoryTreeをパスに合わせて開く
         /// </summary>
         /// <param name="path"></param>
         private void treeExpand(string path)
         {
-            string[] dirs = path.Split(Path.DirectorySeparatorChar);
-            DirectoryTree item = mDirectoryTree;
-            for (int i = 0; i < dirs.Length; i++) {
-                item.IsExpanded = true;
-                bool abort = false;
-                foreach (DirectoryTree dirTree in item.Items) {
-                    System.Diagnostics.Debug.WriteLine($"treeExpand: {dirTree.mDirectory.Name}");
-                    if (dirTree.mDirectory.Name.Trim('\\') == dirs[i]) {
-                        item = dirTree;
-                        item.IsSelected = true;
-                        abort = true;
-                        break;
+            if (path == null || path == "") {
+                rootTree();
+            } else {
+                string[] dirs = path.Split(Path.DirectorySeparatorChar);
+                DirectoryTree item = mDirectoryTree;
+                for (int i = 0; i < dirs.Length; i++) {
+                    item.IsExpanded = true;
+                    bool abort = false;
+                    foreach (DirectoryTree dirTree in item.Items) {
+                        System.Diagnostics.Debug.WriteLine($"treeExpand: {dirTree.mDirectory.Name}");
+                        if (dirTree.mDirectory.Name.Trim('\\') == dirs[i]) {
+                            item = dirTree;
+                            item.IsSelected = true;
+                            abort = true;
+                            break;
+                        }
                     }
+                    if (!abort) break;
                 }
-                if (!abort) break;
             }
         }
 
@@ -393,6 +503,25 @@ namespace KFiler
         }
 
         /// <summary>
+        /// クリップボードにファイルリストを設定
+        /// </summary>
+        /// <param name="fileList">ファイルリスト</param>
+        /// <param name="move">移動/コピー</param>
+        private void fileDropCopy(List<string> fileList, bool move = false)
+        {
+            ylib.setClipboard(fileList, move ? 2 : 1);
+        }
+
+        /// <summary>
+        /// クリップボードのファイルの貼付け
+        /// </summary>
+        private void fileDropPaste()
+        {
+            (List<string> fileList, int copyType) = ylib.getClipboardFiles();
+            fileCopy(fileList, mCurFolder, copyType == 2);
+        }
+
+        /// <summary>
         /// ファイルのコピー処理()
         /// </summary>
         /// <param name="fileList">ファイルリスト</param>
@@ -400,7 +529,19 @@ namespace KFiler
         private void fileCopy(List<string> fileList, bool move = false)
         {
             string targetFolder = selectTargetFolder("コピー先フォルダの指定", mCopyFolderListPath);
-            if (targetFolder == null || targetFolder == "") return;
+            fileCopy(fileList, targetFolder, move);
+        }
+
+        /// <summary>
+        /// ファイルコピー処理
+        /// </summary>
+        /// <param name="fileList">ファイルリスト</param>
+        /// <param name="targetFolder">コピー先フォルダ</param>
+        /// <param name="move">移動/コピー</param>
+        private void fileCopy(List<string> fileList, string targetFolder,  bool move = false)
+        {
+            if (targetFolder == null || targetFolder == "" ||
+                fileList == null || fileList.Count == 0) return;
 
             if (mFileCopyDialog != null) {
                 mFileCopyDialog.Close();
@@ -409,10 +550,8 @@ namespace KFiler
             mFileCopyDialog.mSrcFiles = fileList;
             mFileCopyDialog.mDestFolder = targetFolder;
             mFileCopyDialog.mSrcRemove = move;
-            if (move) {
-                mFileCopyDialog.mCallBackOn = true;
-                mFileCopyDialog.callback = fileListUpdate;
-            }
+            mFileCopyDialog.mCallBackOn = true;
+            mFileCopyDialog.callback = fileListUpdate;
             mFileCopyDialog.Show();
         }
 
@@ -485,10 +624,23 @@ namespace KFiler
         }
 
         /// <summary>
-        /// 
+        /// フォルダ比較ダイヤログを開く
         /// </summary>
-        /// <param name="title"></param>
-        /// <param name="folderListPath"></param>
+        private void diffFolder()
+        {
+            if (mDiffFolder != null)
+                mDiffFolder.Close();
+            mDiffFolder = new DiffFolder();
+            mDiffFolder.Owner = this;
+            mDiffFolder.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            mDiffFolder.Show();
+        }
+
+        /// <summary>
+        /// フォルダの選択ダイヤログ
+        /// </summary>
+        /// <param name="title">タイトル</param>
+        /// <param name="folderListPath">フォルダパスリスト</param>
         /// <returns></returns>
         private string selectTargetFolder(string title, string folderListPath)
         {
@@ -526,6 +678,35 @@ namespace KFiler
                 Directory.SetCurrentDirectory(mCurFolder);
                 ylib.openUrl(path);
             }
+        }
+
+
+        /// <summary>
+        /// テキストファイル表示
+        /// </summary>
+        /// <param name="path"></param>
+        private void textFileOpen(string path)
+        {
+            if (mTextEditorDlg != null)
+                mTextEditorDlg.Close();
+            mTextEditorDlg = new InputBox();
+            //mTextEditorDlg.Topmost = true;
+            mTextEditorDlg.mFontFamily = "MS Gothic";
+            mTextEditorDlg.mFileEdit = true;
+            mTextEditorDlg.mReadOnly = false;
+            mTextEditorDlg.mFilePath = path;
+            mTextEditorDlg.mMultiLine = true;
+            mTextEditorDlg.mTextRapping = false;
+            mTextEditorDlg.Title = $"エディタ [{Path.GetFileName(path)}]";
+            mTextEditorDlg.mCalcMenu = true;
+            mTextEditorDlg.mHexCalcMenu = true;
+            mTextEditorDlg.mFileSelectMenu = true;
+            mTextEditorDlg.Show();
+        }
+
+        private void textFileClose()
+        {
+            System.Diagnostics.Debug.WriteLine($"InputBox Close: {mTextEditorDlg.mFilePath}");
         }
 
         /// <summary>
@@ -584,11 +765,27 @@ namespace KFiler
                 foreach (FileEntity item in lvFileList.SelectedItems) {
                     selectTotalSize += item.mLength;
                 }
-                tbStatus.Text = $"選択 {yfile.FileSize2Str(selectTotalSize)}({lvFileList.SelectedItems.Count})";
+                tbStatus.Text = $"選択 {yfile.FileSize2Str(selectTotalSize)}B({lvFileList.SelectedItems.Count})";
             }
             if (0 < tbStatus.Text.Length)
                 tbStatus.Text += " / ";
-            tbStatus.Text += $"全 {yfile.FileSize2Str(mFileEntityList.getTotalSize())}({mFileEntityList.mFiles.Count})";
+            tbStatus.Text += $"全 {yfile.FileSize2Str(mFileEntityList.getTotalSize())}B({mFileEntityList.mFiles.Count})";
+        }
+
+        /// <summary>
+        /// コンテキストメニューからヘッダ名のアイテムを探す
+        /// </summary>
+        /// <param name="menu">コンテキストメニュー</param>
+        /// <param name="headerName">ヘッダ名</param>
+        /// <returns>メニューアイテム</returns>
+        private MenuItem getContextMenuHeaderIItem(ContextMenu menu, string headerName)
+        {
+            for (int i = 0; i < menu.Items.Count; i++) {
+                MenuItem item = (MenuItem)(menu.Items[i]);
+                if (item.Name == headerName)
+                    return item;
+            }
+            return null;
         }
     }
 }

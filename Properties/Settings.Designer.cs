@@ -82,5 +82,65 @@ namespace KFiler.Properties {
                 this["MainWindowTreeWidth"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DiffFolderWindowTop {
+            get {
+                return ((double)(this["DiffFolderWindowTop"]));
+            }
+            set {
+                this["DiffFolderWindowTop"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DiffFolderWindowLeft {
+            get {
+                return ((double)(this["DiffFolderWindowLeft"]));
+            }
+            set {
+                this["DiffFolderWindowLeft"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DiffFolderWindowWidth {
+            get {
+                return ((double)(this["DiffFolderWindowWidth"]));
+            }
+            set {
+                this["DiffFolderWindowWidth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public double DiffFolderWindowHeight {
+            get {
+                return ((double)(this["DiffFolderWindowHeight"]));
+            }
+            set {
+                this["DiffFolderWindowHeight"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DiffTool {
+            get {
+                return ((string)(this["DiffTool"]));
+            }
+            set {
+                this["DiffTool"] = value;
+            }
+        }
     }
 }

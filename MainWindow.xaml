@@ -13,12 +13,42 @@
                 <TextBlock Text="お気に入り" Margin="10,0,0,0" />
                 <ComboBox Name="cbSelectFolder" Width="250" SelectionChanged="cbSelectFolder_SelectionChanged" />
                 <Button x:Name="btSelectFolder" Click="btSelectFolder_Click" ToolTip="表示中のフォルダをお気に入りに登録" >
-                    <Image Source="/Icon/DirGo.ico" Width="15" Height="15" />
+                    <Image Source="Icon/DirGo.ico" Width="15" Height="15" />
                 </Button>
-
+                <Button Name="btUpFolder" Click="btFileOpration_Click"  >
+                    <Image Source="/Icon/UpFolder.GIF" Width="15" Height="15" />
+                </Button>
+                <Separator Width="2" />
+                <Button Name="btCopyFile" Click="btFileOpration_Click"  >
+                    <Image Source="Icon/copy.png" Width="15" Height="15" />
+                </Button>
+                <Button Name="btCutFile" Click="btFileOpration_Click"  >
+                    <Image Source="Icon/cut.png" Width="15" Height="15" />
+                </Button>
+                <Button Name="btPasteFile" Click="btFileOpration_Click"  >
+                    <Image Source="Icon/paste.png" Width="15" Height="15" />
+                </Button>
+                <Separator Width="2" />
+                <Button Name="btCompareFolder" Click="btFileOpration_Click"  >
+                    <Image Source="Icon/Compare.gif" Width="15" Height="15" />
+                </Button>
+                <Button Name="btFileSearch" Click="btFileOpration_Click"  >
+                    <Image Source="Icon/Search.gif" Width="15" Height="15" />
+                </Button>
+                <Button Name="btGrep" Click="btFileOpration_Click"  >
+                    <Image Source="/Icon/SearchWord.gif" Width="15" Height="15" />
+                </Button>
             </StatusBar>
             <StatusBar DockPanel.Dock="Bottom" Height="25">
+                <Button Name="btSetting" Click="btSetting_Click" >
+                    <Image Source="/Icon/Settings.png" Width="15" Height="15" />
+                </Button>
                 <TextBlock Name="tbStatus" Text="状態" Margin="10,0,0,0" />
+                <StatusBarItem HorizontalAlignment="Right" >
+                    <Button Name="btHelp" HorizontalAlignment="Right" Click="btHelp_Click">
+                        <Image Source="/Icon/StatusHelpOutline.png" Width="15" Height="15" />
+                    </Button>
+                </StatusBarItem>
             </StatusBar>
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -75,17 +105,20 @@
                     </ListView.View>
                     <ListView.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Name="lvCopyMenu" Header="コピー" Click="lvFileList_MenuItem_Click" />
-                            <MenuItem Name="lvMoveMenu" Header="移動" Click="lvFileList_MenuItem_Click" />
-                            <MenuItem Name="lvRenameMenu" Header="名前の変更" Click="lvFileList_MenuItem_Click" />
-                            <MenuItem Name="lvRemoveMenu" Header="削除" Click="lvFileList_MenuItem_Click" />
-                            <MenuItem Name="lvMkdirMenu" Header="フォルダ作成" Click="lvFileList_MenuItem_Click" />
-                            <MenuItem Name="lvCompressMenu" Header="圧縮" Click="lvFileList_MenuItem_Click" />
-                            <MenuItem Name="lvCopyPathMenu" Header="パスコピー" Click="lvFileList_MenuItem_Click" />
-                            <MenuItem Name="lvCopyNameMenu" Header="名前コピー" Click="lvFileList_MenuItem_Click" />
-                            <MenuItem Name="lvOpenMenu" Header="開く" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvCopyMenu" Header="コピー [Ctrl+C]" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvCutMenu" Header="切り取り [Ctrl+X]" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvPasteMenu" Header="貼付け [Ctrl+V]" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Header="ファイル操作" >
+                                <MenuItem Name="lvFileCopyMenu" Header="ファイルコピー [C]" Click="lvFileList_MenuItem_Click" />
+                                <MenuItem Name="lvFileMoveMenu" Header="ファイル移動 [M]" Click="lvFileList_MenuItem_Click" />
+                                <MenuItem Name="lvFileRenameMenu" Header="ファイル名の変更 [R]" Click="lvFileList_MenuItem_Click" />
+                                <MenuItem Name="lvFileRemoveMenu" Header="削除 [D]" Click="lvFileList_MenuItem_Click" />
+                                <MenuItem Name="lvMkdirMenu" Header="フォルダ作成 [K]" Click="lvFileList_MenuItem_Click" />
+                                <MenuItem Name="lvFileCompressMenu" Header="圧縮 [Ctrl+P]" Click="lvFileList_MenuItem_Click" />
+                            </MenuItem>
+                            <MenuItem Name="lvOpenMenu" Header="開く [Ctrl+O]" Click="lvFileList_MenuItem_Click" />
                             <MenuItem Name="lvPropertyMenu" Header="プロパティ" Click="lvFileList_MenuItem_Click" />
-                            <MenuItem Name="lvTerminalMenu" Header="ターミナルで開く" Click="lvFileList_MenuItem_Click" />
+                            <MenuItem Name="lvTerminalMenu" Header="ターミナルで開く [T]" Click="lvFileList_MenuItem_Click" />
 
                         </ContextMenu>
                     </ListView.ContextMenu>
