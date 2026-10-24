@@ -5,9 +5,10 @@
 プログラム構成
 
 MainWindow
-	DirectoryTree(CoreLib)  mDirectoryTree	: ディレクトリツリーの制御クラス
-	FileEntityList mFileEntityList		: ファイルリストの制御リスト
-						: フォルダ監視 
+	DirectoryTree(CoreLib)  mDirectoryTree	: ディレクトリツリーの制御クラス(DirectoryTreeItemを継承)
+	FileEntityList mFileEntityList			: ファイルリストの制御リスト
+	FileSystemWatcher m_Watcher				: フォルダ監視(fileListRedispでスレッド競合が発生するため非同期処理を追加、
+											　モーダルダイヤログを開くときはリソースの変更ができないので停止) 
 
 問題
 ・ファイルカットで他のアプリで貼り付けた場合のリスト更新(ディレクトリ監視がいる)
@@ -39,18 +40,18 @@ MainWindow
 ・フォルダ比較(2026/10/15)
 ・ファイル検索
 ・単語検索(grep)
-・Zipファイルの圧縮解凍(Ctrl+P,zipファイルをEnter)(2026/10/13)
+・Zipファイルの圧縮解凍(Ctrl+P,Ctrl+U)(2026/10/13)
 ・お気に入りフォルダ(2026/10/10)
-・お気に入りファイル
+・お気に入りファイル(2026/10/23)
 ・お気に入りアプリ
 ・スクリーンキャプチャ
-・テキストビューワ
-・テキストエディタ
+・テキストビューワ (2026/10/20)
+・テキストエディタ (2026/10/20)
 ・バイナリビューワ
 ・画像ビューワ (2026/10/10)
 ・音楽ファイル再生
 ・スクリプト処理
-・
+・フォルダ監視 (2026/10/23)
+・ファイル検索の非同期処理(フォルダ比較など)
+・ファイル表示のフィルタ機能
 
-D:\Temp\DSC_0171a.zip
-D:\Temp\PlanetApp.zip

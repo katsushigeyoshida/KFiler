@@ -32,9 +32,14 @@ namespace KFiler
         private YLib ylib = new YLib();
         private YFile yfile = new YFile();
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public DiffFolder()
         {
             InitializeComponent();
+
+            mTitleListPath = Path.Combine(ylib.getAppFolderPath(), mTitleListPath);
 
             cbHachChk.IsChecked = true;
             rbDiffFile.IsChecked = true;
@@ -45,11 +50,21 @@ namespace KFiler
             WindowFormLoad();
         }
 
+        /// <summary>
+        /// 前処理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             cbFolderTitle.SelectedIndex = 0;
         }
 
+        /// <summary>
+        /// 終了処理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             saveTitleList(mTitleListPath);
@@ -184,7 +199,7 @@ namespace KFiler
             Button bt = (Button)e.Source;
             if (bt.Name.CompareTo("btComper") == 0) {
                 //  フォルダ比較
-                if (Directory.Exists(tbSrcFolder.Text) || Directory.Exists(tbDstFolder.Text)) {
+                if (Directory.Exists(tbSrcFolder.Text) && Directory.Exists(tbDstFolder.Text)) {
                     setFoldeTitleList();
                     mCurFolderTitleList = mFolderTitleList[0];
                     Mouse.OverrideCursor = Cursors.Wait;

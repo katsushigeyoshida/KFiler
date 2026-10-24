@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Icon\AddDocument.png" />
     <None Remove="Icon\AlignCenter.png" />
     <None Remove="Icon\AlignHorizontalStretch.png" />
     <None Remove="Icon\AlignLeft.png" />
@@ -25,10 +26,12 @@
     <None Remove="Icon\Computer.ico" />
     <None Remove="Icon\copy.png" />
     <None Remove="Icon\cut.png" />
+    <None Remove="Icon\DeleteDocument.png" />
     <None Remove="Icon\DirGo.ico" />
     <None Remove="Icon\Document.png" />
     <None Remove="Icon\EditCopy.png" />
     <None Remove="Icon\EditCut.png" />
+    <None Remove="Icon\EditDocument.png" />
     <None Remove="Icon\editpaste.png" />
     <None Remove="Icon\editredo.png" />
     <None Remove="Icon\editundo.png" />
@@ -75,7 +78,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Icon\AddDocument.png" />
     <Resource Include="Icon\Compare.gif" />
+    <Resource Include="Icon\DeleteDocument.png" />
+    <Resource Include="Icon\EditDocument.png" />
     <Resource Include="Icon\editredo.png" />
   </ItemGroup>
 

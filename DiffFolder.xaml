@@ -61,14 +61,14 @@
             </DataGrid.ContextMenu>
         </DataGrid>
         <Button x:Name="btComper" Content="比較"  Width="50" Margin="5,0,0,5" Height="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="Button_Click"/>
-        <Button x:Name="btRightUpdate" Content="右へコピー" Width="50" Margin="60,0,0,5" Height="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="Button_Click"/>
-        <Button x:Name="btLeftUpdate" Content="左へコピー" Width="50" Margin="115,0,0,5" Height="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="Button_Click"/>
-        <CheckBox x:Name="cbOverWriteForce" Content="強制上書" Margin="170,0,0,7" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
-        <RadioButton x:Name="rbDiffFile" Content="差異ファイル" Margin="245,0,0,7" VerticalAlignment="Bottom" HorizontalAlignment="Left" Click="rbDiffFile_Click" />
-        <RadioButton x:Name="rbAllFile" Content="全ファイル" Margin="325,0,0,7" VerticalAlignment="Bottom" HorizontalAlignment="Left" Click="rbDiffFile_Click" />
-        <CheckBox x:Name="cbHachChk" Content="ハッシュ" Margin="400,0,0,7" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
-        <ProgressBar x:Name="pbCopyCount" Width="50" Height="10" Margin="470,0,0,10" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
-        <TextBlock x:Name="tbFileCount" Text="ファイル数" Margin="530,0,0,7" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
+        <Button x:Name="btRightUpdate" Content="更新＞＞" Width="55" Margin="60,0,0,5" Height="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="Button_Click"/>
+        <Button x:Name="btLeftUpdate" Content="＜＜更新" Width="55" Margin="120,0,0,5" Height="20" HorizontalAlignment="Left" VerticalAlignment="Bottom" Click="Button_Click"/>
+        <CheckBox x:Name="cbOverWriteForce" Content="強制上書" Margin="185,0,0,7" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
+        <RadioButton x:Name="rbDiffFile" Content="差異ファイル" Margin="260,0,0,7" VerticalAlignment="Bottom" HorizontalAlignment="Left" Click="rbDiffFile_Click" />
+        <RadioButton x:Name="rbAllFile" Content="全ファイル" Margin="340,0,0,7" VerticalAlignment="Bottom" HorizontalAlignment="Left" Click="rbDiffFile_Click" />
+        <CheckBox x:Name="cbHachChk" Content="ハッシュ" Margin="410,0,0,7" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
+        <ProgressBar x:Name="pbCopyCount" Width="50" Height="10" Margin="480,0,0,10" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
+        <TextBlock x:Name="tbFileCount" Text="ファイル数" Margin="540,0,0,7" VerticalAlignment="Bottom" HorizontalAlignment="Left" />
         <Button x:Name="btClose" Content="終了" Width="50" Click="btClose_Click" Margin="0,0,5,5" VerticalAlignment="Bottom" HorizontalAlignment="Right"  />
     </Grid>
 </Window>

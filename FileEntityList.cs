@@ -1,5 +1,7 @@
 ﻿using CoreLib;
+using System.Diagnostics;
 using System.IO;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
 namespace KFiler
@@ -11,19 +13,19 @@ namespace KFiler
     public enum FileEntitySortDirection { Ascending, Descending }
 
     /// <summary>
-    /// ディレクトリ構成要素
+    /// ファイル構成要素クラス
     /// </summary>
     public class FileEntity
     {
-        public string mPath { get; set; } = "";
-        public long mLength { get; set; } = 0;
-        public DateTime mLastWriteTime { get; set; } = DateTime.Now;
-        public FileEntityType mFileEntityType { get; set; } = FileEntityType.Non;
-        public BitmapSource mIcon { get; set; } = new BitmapImage();
-        public string mName { get; set; } = "";
-        public string mDateTime { get; set; } = "";
-        public string mSize { get; set; } = "";
-        public string mAttribute { get; set; } = "";
+        public string mPath { get; set; } = "";                         //  ファイルパス
+        public long mLength { get; set; } = 0;                          //  ファイルサイズ
+        public DateTime mLastWriteTime { get; set; } = DateTime.Now;    //  最終更新日
+        public FileEntityType mFileEntityType { get; set; } = FileEntityType.Non;   //  ファイル種別(Root/Directory/File)
+        public BitmapSource mIcon { get; set; } = new BitmapImage();    //  アイコン
+        public string mName { get; set; } = "";                         //  ファイル名/フォルダ名
+        public string mDateTime { get; set; } = "";                     //  更新日時(string)
+        public string mSize { get; set; } = "";                         //  ファイルサイズ(string))
+        public string mAttribute { get; set; } = "";                    //  属性(ACDEHORST)
 
         private YLib ylib = new YLib();
         private YFile yfile = new YFile();
@@ -78,20 +80,25 @@ namespace KFiler
         }
     }
 
+    /// <summary>
+    /// ファイル要素リストクラス
+    /// </summary>
     public class FileEntityList
     {
         public List<FileEntity> mFiles = new List<FileEntity>();    //  構成要素リスト
-        public Dictionary<FileEntitySortType, FileEntitySortDirection> mSort = new Dictionary<FileEntitySortType, FileEntitySortDirection>();
-        public string mTargetFile = "*.*";
-        public string mExceptFile = "";
-        public string mExceptDirectory = "";
-        public FileAttributes mExcepAttribute = FileAttributes.None;
+        public Dictionary<FileEntitySortType, FileEntitySortDirection> mSort = 
+            new Dictionary<FileEntitySortType, FileEntitySortDirection>();  //  構成要素のソートの向き(昇順/降順)
+        public string mTargetFile = "*.*";                          //  検索対象ファイル名(ワイルドカード)
+        public string mExceptFile = "";                             //  除外ファイル名
+        public string mExceptDirectory = "";                        //  除外フォルダ名
+        //public FileAttributes mExceptAttr = FileAttributes.None;  //  除外属性
+        public FileAttributes mExceptAttr = FileAttributes.Hidden | FileAttributes.System;  //  除外属性
 
         private YLib ylib = new YLib();
         private YFile yfile = new YFile();
 
         /// <summary>
-        /// コンストラクタ(構成要素の取得)
+        /// ファイル構成要素の取得
         /// </summary>
         /// <param name="path">パス</param>
         /// <param name="ext">拡張子</param>
@@ -118,7 +125,7 @@ namespace KFiler
         private List<FileEntity> getDirectoryFiles(string directory, string ext = "*.*")
         {
             List<FileEntity> fileInfos = new List<FileEntity>();
-            if (directory == null) {
+            if (directory == null || directory == "") {
                 //  ルート情報(ディスク情報)
                 DriveInfo[] driveInfos = DriveInfo.GetDrives();
                 foreach (DriveInfo driveInfo in driveInfos) {
@@ -128,11 +135,13 @@ namespace KFiler
                 //  ディレクトリ情報とファイル情報
                 List<string> direcries = yfile.getDirectories(directory);
                 foreach (string folder in direcries) {
-                    fileInfos.Add(new FileEntity(FileEntityType.Directory, folder));
+                    if ((File.GetAttributes(folder) & mExceptAttr) == FileAttributes.None)
+                        fileInfos.Add(new FileEntity(FileEntityType.Directory, folder));
                 }
                 string[] files = yfile.getFiles(Path.Combine(directory, ext));
                 foreach (string file in files) {
-                    fileInfos.Add(new FileEntity(FileEntityType.File, file, ext));
+                    if ((File.GetAttributes(file) & mExceptAttr) == FileAttributes.None)
+                        fileInfos.Add(new FileEntity(FileEntityType.File, file, ext));
                 }
             }
             return fileInfos;

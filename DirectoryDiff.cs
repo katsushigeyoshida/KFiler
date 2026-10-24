@@ -154,7 +154,7 @@ namespace KFiler
             }
             foreach (FileInfo destFile in mDestFiles) {
                 string destRelPath = destFile.FullName.Substring(mDestDir.Length + 1);
-                int n = mFiles.FindIndex(x => x.mRelPath == destRelPath);
+                int n = mFiles.FindIndex(x => x.mRelPath.ToLower() == destRelPath.ToLower());
                 if (0 <= n) {
                     mFiles[n].mDstFile = destFile;
                     if (mHashChk)
