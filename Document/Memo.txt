@@ -7,8 +7,19 @@
 MainWindow
 	DirectoryTree(CoreLib)  mDirectoryTree	: ディレクトリツリーの制御クラス(DirectoryTreeItemを継承)
 	FileEntityList mFileEntityList			: ファイルリストの制御リスト
-	FileSystemWatcher m_Watcher				: フォルダ監視(fileListRedispでスレッド競合が発生するため非同期処理を追加、
+	FileSystemWatcher m_Watcher				: フォルダ監視(fileListRedispでスレッド競合が発生するため非同期処理を追加(うまくいっていない)、
 											　モーダルダイヤログを開くときはリソースの変更ができないので停止) 
+
+CoreLib(Dialog)
+	inputBox
+	InputSelect
+	SelectMenu
+	ImageView
+	BinView
+	FileCopyDialog
+	FileDeleteDialog
+	MessageBoxEx
+	StatistcsDlg
 
 問題
 ・ファイルカットで他のアプリで貼り付けた場合のリスト更新(ディレクトリ監視がいる)
@@ -47,7 +58,7 @@ MainWindow
 ・スクリーンキャプチャ
 ・テキストビューワ (2026/10/20)
 ・テキストエディタ (2026/10/20)
-・バイナリビューワ
+・バイナリビューワ (2026/10/26)
 ・画像ビューワ (2026/10/10)
 ・音楽ファイル再生
 ・スクリプト処理
@@ -55,3 +66,12 @@ MainWindow
 ・ファイル検索の非同期処理(フォルダ比較など)
 ・ファイル表示のフィルタ機能
 
+設定項目
+・ファイルリストの検索属性(Hidden,System)
+・
+
+追加・改善
+・フォルダ比較でサイズの同じファイルのみHASHチェックを行う(2026/10/26)
+・バイナリビューワでアスキー表示を同画面表示させる
+・Lzhファイルへの対応(SevenZipExtravtor)
+・ファイルアイコン表示でファイルにアクセスする(IconManager → )

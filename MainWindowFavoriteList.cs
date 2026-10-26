@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Shapes;
 
 namespace KFiler
 {
@@ -18,7 +19,7 @@ namespace KFiler
         {
             int index = lvFavoriteList.SelectedIndex;
             if (0 <= index) {
-                mFavoriteList.openFile(mFavoriteList.mFavoriteList[index]);
+                openFavorite((FavoriteItem)lvFavoriteList.Items[index]);
             }
         }
 
@@ -38,21 +39,32 @@ namespace KFiler
             }
             int index = lvFavoriteList.SelectedIndex;
             if (0 <= index) {
-                FavoriteItem item = mFavoriteList.mFavoriteList[index];
+                bool ret = false;
+                FavoriteItem item = (FavoriteItem)lvFavoriteList.Items[index];
                 if (menuItem.Name == "lvFavoriteOpenMenu") {
                     //  開く
-                    mFavoriteList.openFile(item);
+                    openFavorite(item);
+                } else if (menuItem.Name == "lvFavoriteEditorMenu") {
+                    //  テキストエディタ
+                    textFileOpen(item.mPath);
+                } else if (menuItem.Name == "lvFavoriteImageViewMenu") {
+                    //  イメージビューワ
+                    imageView(item.mPath);
+                } else if (menuItem.Name == "lvFavoriteBinViewMenu") {
+                    //  内部バイナリビューワ
+                    binView(item.mPath);
                 } else if (menuItem.Name == "lvAddCategoryMenu") {
                     //  分類追加
-                    addCategory(fileList);
+                    ret = addCategory(fileList);
                 } else if (menuItem.Name == "lvFavoriteEditMenu") {
                     //  データの編集
-                    editFevoriteInfo(mFavoriteList.mFavoriteList[index]);
+                    ret = editFevoriteInfo(item);
                 } else if (menuItem.Name == "lvFavoriteRemoveMenu") {
                     //  削除
-                    mFavoriteList.removeItem(item.mPath);
-                    favoriteListRedisp();
+                    ret = mFavoriteList.removeItem(fileList);
                 }
+                if (ret)
+                    favoriteListRedisp();
             }
         }
 
@@ -102,7 +114,7 @@ namespace KFiler
             if (0 < lvFavoriteList.SelectedItems.Count) {
                 //  複数選択
                 foreach (FavoriteItem item in lvFavoriteList.SelectedItems)
-                    if (File.Exists(item.mPath) == true)
+                    if (File.Exists(item.mPath) || Directory.Exists(item.mPath))
                         fileList.Add(item.mPath);
                 favItem = (FavoriteItem)lvFavoriteList.SelectedItems[0];
             }
@@ -112,38 +124,53 @@ namespace KFiler
             if (Directory.Exists(mCurFolder))
                 Directory.SetCurrentDirectory(mCurFolder);
             string path = fileList[0];
+            bool ret = false;
             if (modifierKeys == ModifierKeys.Control) {
                 //  Ctrl+ ?
                 switch (key) {
                     case Key.C: fileDropCopy(fileList); break;                  //  クリップボードにファイルコピー
                     case Key.E: textFileOpen(path); break;                      //  Text Editor
                     case Key.G: imageView(path); break;                         //  内部イメージビューワ
-                    case Key.O: openFile(path); break;                          //  開く(ImageViewer/extractZip)
+                    case Key.O: openFavorite(favItem); break;                   //  開く
                     case Key.P: zipCompress(fileList); break;                   //  ファイル圧縮
                     case Key.X: fileDropCopy(fileList, true); break;            //  クリップボードのファイルカット
                     default: return false;
                 }
             } else {
                 switch (key) {
-                    case Key.B: break;                                          //  Binary Editor
                     case Key.C: fileCopy(fileList, mCurFolder); break;          //  ファイル転送ダイヤログ(コピー)
-                    case Key.D: mFavoriteList.removeItem(fileList);             //  お気に入り削除
-                                favoriteListRedisp();
+                    case Key.D: ret = mFavoriteList.removeItem(fileList);       //  お気に入り削除
                                 break;
-                    case Key.H: editFevoriteInfo(favItem);                      //  お気に入り編集
-                                favoriteListRedisp();
-                                break;
+                    case Key.H: ret = editFevoriteInfo(favItem); break;         //  お気に入り編集
+
                     case Key.M: fileCopy(fileList, mCurFolder, true); break;    //  ファイル移動ダイヤログ
-                    case Key.S: addCategory(fileList); break;                   //  分類追加
+                    case Key.S: ret = addCategory(fileList); break;             //  分類追加
                     case Key.T: Directory.SetCurrentDirectory(favItem.mFolder); //  ターミナルで開く
                                 ylib.processStart(mTerminal, "");
                                 break;
-                    case Key.Enter: mFavoriteList.openFile(favItem); break;     //  開く
+                    case Key.Enter: openFavorite(favItem) ; break;              //  開く
                     default: return false;
                 }
             }
+            if (ret)
+                favoriteListRedisp();
 
             return true;
+        }
+
+        /// <summary>
+        /// お気に入りデータの実行
+        /// </summary>
+        /// <param name="favItem"></param>
+        private void openFavorite(FavoriteItem favItem)
+        {
+            if (Directory.Exists(favItem.mPath)) {
+                treeExpand(favItem.mPath);
+            } else if (File.Exists(favItem.mPath)) {
+                mFavoriteList.openFile(favItem);
+            } else {
+                MessageBox.Show("ファイルまたはフォルダが存在しません");
+            }
         }
 
         /// <summary>
@@ -192,19 +219,21 @@ namespace KFiler
             }
             int index = lvFavoriteList.SelectedIndex;
             if (0 <= index) {
+                bool ret = false;
+                FavoriteItem item = (FavoriteItem)lvFavoriteList.Items[index];
                 string path = mFavoriteList.mFavoriteList[index].mPath;
                 if (button.Name.CompareTo("btSelectCategpry") == 0) {
                     //  分類の登録
-                    addCategory(fileList);
+                    ret = addCategory(fileList);
                 } else if (button.Name.CompareTo("btEditFavoriteItem") == 0) {
                     //  データの編集
-                    editFevoriteInfo(mFavoriteList.mFavoriteList[index]);
-                    favoriteListRedisp();
+                    ret = editFevoriteInfo((FavoriteItem)lvFavoriteList.Items[index]);
                 } else if (button.Name.CompareTo("btRemoveFavoriteItem") == 0) {
                     //  データの削除
-                    mFavoriteList.removeItem(fileList);
-                    favoriteListRedisp();
+                    ret = mFavoriteList.removeItem(fileList);
                 }
+                if (ret)
+                    favoriteListRedisp();
             }
         }
 
@@ -212,32 +241,37 @@ namespace KFiler
         /// 分類名の追加
         /// </summary>
         /// <param name="fileList">ファイルリスト</param>
-        private void addCategory(List<string> fileList)
+        private bool addCategory(List<string> fileList)
         {
+            Char[] trimChar = { ',', ' ' };
             TabItem tabItem = (TabItem)tabListView.SelectedItem;
             if (tabItem.Name == "tabFavoriteList") {
-                InputBox dlg = new InputBox();
+                InputSelect dlg = new InputSelect();
                 dlg.Title = "分類名の入力";
+                dlg.mInputType = InputSelect.InputType.TEXT;
+                dlg.Owner = this;
+                dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                dlg.mTextList = mFavoriteList.mCategoryList.ToList().Skip(1).ToList();
                 if (dlg.ShowDialog() == true) {
-                    mFavoriteList.addCategory(fileList, dlg.mEditText);
-                    favoriteListRedisp();
+                    mFavoriteList.addCategory(fileList, dlg.mText.Trim(trimChar));
+                    return true;
                 }
             }
+            return false;
         }
 
         /// <summary>
         /// ファイル情報の編集
         /// </summary>
         /// <param name="item"></param>
-        private void editFevoriteInfo(FavoriteItem item)
+        private bool editFevoriteInfo(FavoriteItem item)
         {
             FavoriteInfo dlg = new FavoriteInfo();
             dlg.Owner = this;
             dlg.WindowStartupLocation  = WindowStartupLocation.CenterOwner;
             dlg.mItem = item;
             dlg.mCategoryList = mFavoriteList.getCategoryList();
-            dlg.ShowDialog();
-            favoriteListRedisp();
+            return dlg.ShowDialog() == true;
         }
 
         /// <summary>

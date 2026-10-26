@@ -23,9 +23,10 @@ namespace KFiler
         private FileCopyDialog mFileCopyDialog;             //  ファイルコピーダイヤログ
         private InputBox mTextEditorDlg;                    //  テキスト表示ダイヤログ
         private ImageView mImageView;                       //  イメージビューワーダイヤログ
+        private BinView mBinView;                           //  バイナリビューワ
+
         private string mFolderListPath = "FileExplorerFolderList.csv";  //  お気に入りフォルダリストの保存ファイルパス
         private string mCopyFolderListPath = "CopyFolderList.csv";  //  コピー先フォルダリストの保存ファイルパス
-        private string mCompressFolderListPath = "CompressFolderList.csv";  //  圧縮先フォルダリストの保存ファイルパス
         private string mHelpFilePath = "CadAppManual.pdf";  //  PDFのヘルプファイル
         private string mTerminal = "powershell.exe";    //  "cmd.exe", "powershell.exe"(powershell5.1)ls, "pwsh.exe"(powershell7)
 
@@ -191,7 +192,6 @@ namespace KFiler
                                 break;
                 }
             }
-            SetFolderWatch(mCurFolder);
         }
 
         /// <summary>

@@ -111,7 +111,8 @@ namespace KFiler
         private string mSrcDir;
         private string mDestDir;
         public List<FilesData> mFiles = new List<FilesData>();
-        public bool mHashChk = true;
+        public bool mHashChk = true;                //  ハッシュチェック(CRC32L)を行う   
+        public bool mSizeOnly = true;               //  サイズが同じものだけHASHチェックをする
         private CoreLib.HashCode mHash = new CoreLib.HashCode(CoreLib.HashCode.HashType.CRC32L);
         public bool mCallBackOn = false;            //  コールバック有り
         public Action callback;                     //  コールバック関数
@@ -147,7 +148,7 @@ namespace KFiler
         public void execute() {
             foreach (FileInfo srcFile in mSrcFiles) {
                 mFiles.Add(new FilesData(srcFile.FullName.Substring(mSrcDir.Length + 1), srcFile, null));
-                if (mHashChk)
+                if (mHashChk && !mSizeOnly)
                     mFiles[mFiles.Count - 1].mSrcCrc = mHash.GetCrc32L(srcFile.FullName);
                 if (mCallBackOn)
                     callback();
@@ -156,12 +157,18 @@ namespace KFiler
                 string destRelPath = destFile.FullName.Substring(mDestDir.Length + 1);
                 int n = mFiles.FindIndex(x => x.mRelPath.ToLower() == destRelPath.ToLower());
                 if (0 <= n) {
+                    //  両存ファイル
                     mFiles[n].mDstFile = destFile;
-                    if (mHashChk)
+                    if (mHashChk && mSizeOnly &&
+                        mFiles[n].mSrcFile.Length == mFiles[n].mDstFile.Length) {
+                        mFiles[n].mSrcCrc = mHash.GetCrc32L(mFiles[n].mSrcFile.FullName);
+                        mFiles[n].mDstCrc = mHash.GetCrc32L(mFiles[n].mDstFile.FullName);
+                    }
+                    if (mHashChk && !mSizeOnly)
                         mFiles[n].mDstCrc = mHash.GetCrc32L(destFile.FullName);
                 } else {
                     mFiles.Add(new FilesData(destRelPath, null, destFile));
-                    if (mHashChk)
+                    if (mHashChk && !mSizeOnly)
                         mFiles[mFiles.Count - 1].mDstCrc = mHash.GetCrc32L(destFile.FullName);
                 }
                 if (mCallBackOn)
@@ -192,7 +199,9 @@ namespace KFiler
             else
                 for (int i = mFiles.Count - 1; i >= 0; i--) {
                     if (mHashChk) {
-                        if (mFiles[i].mSrcCrc != mFiles[i].mDstCrc)
+                        if (!sameFile(mFiles[i].mSrcFile, mFiles[i].mDstFile, mSizeOnly)) {
+                            files.Add(mFiles[i]);
+                        } else if (mFiles[i].mSrcCrc != mFiles[i].mDstCrc)
                             files.Add(mFiles[i]);
                     } else {
                         if (!sameFile(mFiles[i].mSrcFile, mFiles[i].mDstFile))
@@ -203,19 +212,22 @@ namespace KFiler
         }
 
         /// <summary>
-        /// ファイル同士の同一性をチェック
+        /// ファイル同士の同一性をチェック(サイズと日付の比較)
         /// </summary>
         /// <param name="srcFile">比較元ファイル</param>
         /// <param name="dstFile">比較先ファイル</param>
+        /// <param name="sizeonly">サイズのみ比較</param>
         /// <returns></returns>
-        private bool sameFile(FileInfo srcFile, FileInfo dstFile)
+        private bool sameFile(FileInfo srcFile, FileInfo dstFile,bool sizeonly = false)
         {
             if (srcFile == null || dstFile == null)
                 return false;
+            if (srcFile.Length != dstFile.Length)
+                return false;
+            if (sizeonly)
+                return true;
             //  日時の比較は1秒以下の誤差がある場合があるので文字列に変換して比較
             if (srcFile.LastWriteTime.ToString().CompareTo(dstFile.LastWriteTime.ToString()) != 0)
-                return false;
-            if (srcFile.Length != dstFile.Length)
                 return false;
             return true;
         }

@@ -1,9 +1,14 @@
 ﻿using CoreLib;
 using System.IO;
+using System.Reflection;
 
 namespace KFiler
 {
-    public enum FavoriteDataSortType { Title, Category, Name, Extension, Folder, DateTime, Size, Path, Application, Non }
+    //  お気に入りデータのソート項目
+    public enum FavoriteDataSortType { 
+        Title, Category, Name, Extension, Folder, DateTime, Size, Path, Application, Non
+    }
+    //  お気に入りデータのソート方向
     public enum FavoriteDataSortDirection { Ascending, Descending }
 
     /// <summary>
@@ -29,16 +34,28 @@ namespace KFiler
         /// <param name="ctegory">分類目</param>
         public FavoriteItem(string path, string title = "", string ctegory = "")
         {
-            FileInfo fileInfo = new FileInfo(path);
-            mTitle = Path.GetFileNameWithoutExtension(fileInfo.FullName);
-            mCategory = "";
-            mName = fileInfo.Name;
-            mExtension = fileInfo.Extension.TrimStart('.');
-            mFolder = fileInfo.DirectoryName;
-            if (fileInfo.Exists) {
-                mDateTime = fileInfo.LastWriteTime.ToString();
-                mSize = fileInfo.Length.ToString("N0");
-                mPath = fileInfo.FullName;
+            if (Directory.Exists(path)) {
+                DirectoryInfo di = new DirectoryInfo(path);
+                mTitle = di.Name;
+                mCategory = "";
+                mName = "";
+                mExtension = "[Folder]";
+                mFolder = di.FullName;
+                mDateTime = di.LastWriteTime.ToString();
+                mSize = "";
+                mPath = di.FullName;
+            } else if (File.Exists(path)) {
+                FileInfo fileInfo = new FileInfo(path);
+                mTitle = Path.GetFileNameWithoutExtension(fileInfo.FullName);
+                mCategory = "";
+                mName = fileInfo.Name;
+                mExtension = fileInfo.Extension.TrimStart('.');
+                mFolder = fileInfo.DirectoryName;
+                if (fileInfo.Exists) {
+                    mDateTime = fileInfo.LastWriteTime.ToString();
+                    mSize = fileInfo.Length.ToString("N0");
+                    mPath = fileInfo.FullName;
+                }
             }
         }
 
@@ -206,26 +223,32 @@ namespace KFiler
         /// リストから削除
         /// </summary>
         /// <param name="path">ファイルパス</param>
-        public void removeItem(string path)
+        public bool removeItem(string path)
         {
             int index = mFavoriteList.FindIndex(x => x.mPath == path);
-            if (0 <= index)
+            if (0 <= index) {
                 mFavoriteList.RemoveAt(index);
-            makeCategory();
+                makeCategory();
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
         /// リストから削除
         /// </summary>
         /// <param name="fileList">ファイルリスト</param>
-        public void removeItem(List<string> fileList)
+        public bool removeItem(List<string> fileList)
         {
+            if (fileList.Count == 0)
+                return false;
             foreach (string path in fileList) {
                 int index = mFavoriteList.FindIndex(x => x.mPath == path);
                 if (0 <= index)
                     mFavoriteList.RemoveAt(index);
             }
             makeCategory();
+            return true;
         }
 
 

@@ -11,6 +11,8 @@ namespace KFiler
     {
         private FileSystemWatcher mWatcher = null;     //  フォルダ監視
         private string mFileFilter = "*.*";              //  ファイル検索のフィルタ
+        private string mCompressFolderListPath = "CompressFolderList.csv";  //  圧縮先フォルダリストの保存ファイルパス
+        private string mExtractFolderListPath = "ExstractFolderList.csv";  //  解凍先フォルダリストの保存ファイルパス
 
         /// <summary>
         /// FileListのListViewの更新
@@ -18,37 +20,15 @@ namespace KFiler
         /// <param name="curFolder"></param>
         private void fileListUpdate(string curFolder)
         {
-            ClearFolderWatch();                 //  フォルダ監視停止
+            //ClearFolderWatch();                 //  フォルダ監視停止
             Title = $"[{curFolder}]";
             mFileEntityList.getFileEntityList(curFolder, mFileFilter);
             tabChange("tabFileList");
             setFileListSortDisp();
             statusDisp();
-            SetFolderWatch(curFolder);          //  フォルダ監視開始
+            //SetFolderWatch(curFolder);          //  フォルダ監視開始
         }
 
-
-        /// <summary>
-        /// ファイルリストの更新
-        /// </summary>
-        private void fileListUpdate()
-        {
-            mFileEntityList.getFileEntityList(mCurFolder, mFileFilter);
-            fileListRedisp();
-        }
-
-        /// <summary>
-        /// ファイルリストの再表示
-        /// </summary>
-        private void fileListRedisp()
-        {
-            //  ファイル監視でスレッドの競合が起きるので非同期処理を追加
-            this.Dispatcher.Invoke((Action)(() => {
-                lvFileList.Items.Clear();
-                foreach (var fileEntity in mFileEntityList.mFiles)
-                    lvFileList.Items.Add(fileEntity);
-            }));
-        }
 
         /// <summary>
         /// ファイルリストの項目選択
@@ -62,13 +42,22 @@ namespace KFiler
                 string path = mFileEntityList.mFiles[index].mPath;
                 //  ファイルリストのメニュー表示切替
                 MenuItem itemOpen = getContextMenuHeaderIItem(lvFileList.ContextMenu, "lvOpenMenu");
+                MenuItem itemEditor = getContextMenuHeaderIItem(lvFileList.ContextMenu, "lvEditorMenu");
+                MenuItem itemImageView = getContextMenuHeaderIItem(lvFileList.ContextMenu, "lvImageViewMenu");
+                MenuItem itemBinView = getContextMenuHeaderIItem(lvFileList.ContextMenu, "lvBinViewMenu");
                 MenuItem itemFavorite = getContextMenuHeaderIItem(lvFileList.ContextMenu, "lvAddFavoriteMenu");
                 if (itemOpen != null) {
                     if (Directory.Exists(path)) {
                         itemOpen.Visibility = Visibility.Collapsed;
+                        itemEditor.Visibility = Visibility.Collapsed;
+                        itemImageView.Visibility = Visibility.Collapsed;
+                        itemBinView.Visibility = Visibility.Collapsed;
                         itemFavorite.Visibility = Visibility.Collapsed;
                     } else {
                         itemOpen.Visibility = Visibility.Visible;
+                        itemEditor.Visibility = Visibility.Visible;
+                        itemImageView.Visibility = Visibility.Visible;
+                        itemBinView.Visibility = Visibility.Visible;
                         itemFavorite.Visibility = Visibility.Visible;
                     }
                 }
@@ -102,7 +91,6 @@ namespace KFiler
         {
             int index = lvFileList.SelectedIndex;
             if (0 <= index) {
-                ClearFolderWatch();
                 //  サブディレクトリに移動
                 string path = mFileEntityList.mFiles[index].mPath;
                 if (Directory.Exists(path)) {
@@ -112,7 +100,6 @@ namespace KFiler
                     openFile(path);
                     fileListUpdate();
                 }
-                SetFolderWatch(mCurFolder);
             }
         }
 
@@ -133,7 +120,6 @@ namespace KFiler
             }
             
             string curDir = Directory.GetCurrentDirectory();
-            ClearFolderWatch();
             if (0 <= lvFileList.SelectedIndex) {
                 //  ファイル選択
                 int index = lvFileList.SelectedIndex;
@@ -167,10 +153,22 @@ namespace KFiler
                     //  ファイル解凍ダイヤログ
                     UnPack(fileList);
                     fileListUpdate();
+                } else if (menuItem.Name.CompareTo("lvEditorMenu") == 0) {
+                    //  内部エディタ
+                    textFileOpen(path);
+                } else if (menuItem.Name == "lvImageViewMenu") {
+                    //  イメージビューワ
+                    imageView(path);
+                } else if (menuItem.Name.CompareTo("lvBinViewMenu") == 0) {
+                    //  内部バイナリビューワ
+                    binView(path);
                 } else if (menuItem.Name.CompareTo("lvOpenMenu") == 0) {
                     //  ファイルを開く
                     Directory.SetCurrentDirectory(mCurFolder);
                     ylib.openUrl(path);
+                } else if (menuItem.Name.CompareTo("lvReDispMenu") == 0) {
+                    //  表示更新
+                    fileListUpdate();
                 } else if (menuItem.Name.CompareTo("lvPropertyMenu") == 0) {
                     //  プロパティ
 
@@ -193,7 +191,6 @@ namespace KFiler
                 Directory.SetCurrentDirectory(mCurFolder);
                 ylib.processStart(mTerminal, "");
             }
-            SetFolderWatch(mCurFolder);
             Directory.SetCurrentDirectory(curDir);
         }
 
@@ -245,7 +242,6 @@ namespace KFiler
                     fileList.Add(item.mPath);
             }
 
-            ClearFolderWatch();
             Button button = (Button)sender;
             if (button.Name.CompareTo("btCopyFile") == 0) {
                 //  コピー操作(Ctrl+C)
@@ -274,7 +270,6 @@ namespace KFiler
                 mCurFolder = Path.GetDirectoryName(mCurFolder)!;
                 treeExpand(mCurFolder);
             }
-            SetFolderWatch(mCurFolder);
         }
 
         /// <summary>
@@ -298,10 +293,10 @@ namespace KFiler
                 Directory.SetCurrentDirectory(mCurFolder);
             string path = fileList[0];
             bool ret = true;
-            ClearFolderWatch();
             if (modifierKeys == ModifierKeys.Control) {
                 //  Ctrl+ ?
                 switch (key) {
+                    case Key.B: binView(path); break;
                     case Key.C: fileDropCopy(fileList); break;                  //  クリップボードにファイルコピー
                     case Key.E: textFileOpen(path); break;                      //  内部Text Editor
                     case Key.G: imageView(path); break;                         //  内部イメージビューワ
@@ -334,7 +329,6 @@ namespace KFiler
                     default: ret = false; break;
                 }
             }
-            SetFolderWatch(mCurFolder);
             return ret;
         }
 
@@ -361,6 +355,27 @@ namespace KFiler
             }
             //  再表示
             fileListRedisp();
+        }
+
+        /// <summary>
+        /// ファイルリストの更新
+        /// </summary>
+        private void fileListUpdate()
+        {
+            mFileEntityList.getFileEntityList(mCurFolder, mFileFilter);
+            fileListRedisp();
+        }
+
+        /// <summary>
+        /// ファイルリストの再表示
+        /// </summary>
+        private void fileListRedisp()
+        {
+            //this.Dispatcher.Invoke((Action)(() => {
+                lvFileList.Items.Clear();
+                foreach (var fileEntity in mFileEntityList.mFiles)
+                    lvFileList.Items.Add(fileEntity);
+            //}));
         }
 
         /// <summary>
@@ -486,12 +501,25 @@ namespace KFiler
         }
 
         /// <summary>
-        /// ディレクトリ・7ファイルをZipファイルに圧縮
+        /// フォルダ比較ダイヤログを開く
+        /// </summary>
+        private void diffFolder()
+        {
+            if (mDiffFolder != null)
+                mDiffFolder.Close();
+            mDiffFolder = new DiffFolder();
+            mDiffFolder.Owner = this;
+            mDiffFolder.Show();
+        }
+
+        /// <summary>
+        /// ディレクトリ・ファイルをZipファイルに圧縮
         /// </summary>
         /// <param name="fileList">ファイルリスト</param>
         private void zipCompress(List<string> fileList)
         {
-            string targetFolder = yfile.folderSelect("圧縮先フォルダの選択", ".");
+            //string targetFolder = yfile.folderSelect("圧縮先フォルダの選択", ".");
+            string targetFolder = selectTargetFolder("圧縮先フォルダの選択", mCompressFolderListPath);
             if (targetFolder == null || targetFolder == "") return;
             foreach (string name in fileList) {
                 string srcPath = Path.Combine(mCurFolder, name);
@@ -505,46 +533,19 @@ namespace KFiler
         }
 
         /// <summary>
-        /// フォルダ比較ダイヤログを開く
-        /// </summary>
-        private void diffFolder()
-        {
-            if (mDiffFolder != null)
-                mDiffFolder.Close();
-            mDiffFolder = new DiffFolder();
-            mDiffFolder.Owner = this;
-            mDiffFolder.Show();
-        }
-
-        /// <summary>
-        /// フォルダの選択ダイヤログ
-        /// </summary>
-        /// <param name="title">タイトル</param>
-        /// <param name="folderListPath">フォルダパスリスト</param>
-        /// <returns></returns>
-        private string selectTargetFolder(string title, string folderListPath)
-        {
-            InputSelect dlg = new InputSelect();
-            dlg.Title = title;
-            //dlg.Topmost = true;
-            dlg.Owner = this;
-            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            dlg.mInputType = InputSelect.InputType.FOLDER;
-            dlg.mTextList = yfile.loadListData(folderListPath);
-            if (dlg.ShowDialog() != true)
-                return "";
-            yfile.saveListData(folderListPath, dlg.mTextList);
-            return dlg.mText;
-        }
-
-        /// <summary>
         /// 圧縮ファイルの解凍
         /// </summary>
         /// <param name="path">ファイルパス</param>
         private void UnPack(List<string> fileList)
         {
-            string extractFolder = yfile.folderSelect("解凍先フォルダの選択", ".");
+            (string extractFolder, bool selfFolder) = selectExtractFolder(mExtractFolderListPath);
+            //string extractFolder = yfile.folderSelect("解凍先フォルダの選択", ".");
             foreach (string path in fileList) {
+                if (selfFolder) {
+                    extractFolder = Path.Combine(extractFolder, Path.GetFileNameWithoutExtension(path));
+                    if (!Directory.Exists(extractFolder))
+                        Directory.CreateDirectory(extractFolder);
+                }
                 if (Path.GetExtension(path).ToLower() == ".zip") {
                     //  Zipファイルの解凍
                     extractZip(path, extractFolder);
@@ -553,9 +554,31 @@ namespace KFiler
                     extractGz(path, extractFolder);
                 } else if (Path.GetExtension(path).ToLower() == ".tar") {
                     //  tarファイルの解凍
-
+                    extractTar(path, extractFolder);
                 }
             }
+        }
+
+        /// <summary>
+        /// 解凍先フォルダの選択(ファイル名をフォルダに変換チェックあり)
+        /// </summary>
+        /// <param name="folderListPath">フォルダリストファイルパス</param>
+        /// <returns>()</returns>
+        private (string, bool) selectExtractFolder(string folderListPath)
+        {
+            folderListPath = Path.Combine(ylib.getAppFolderPath(), folderListPath);
+            InputSelect dlg = new InputSelect();
+            dlg.Title = "解凍先フォルダの選択";
+            dlg.mCheckBoxTitle = "ファイル名を解凍先フォルダに指定する";
+            //dlg.Topmost = true;
+            dlg.Owner = this;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            dlg.mInputType = InputSelect.InputType.FOLDER;
+            dlg.mTextList = yfile.loadListData(folderListPath);
+            if (dlg.ShowDialog() != true)
+                return ("", false);
+            yfile.saveListData(folderListPath, dlg.mTextList);
+            return (dlg.mText, dlg.mCheckBocChecked);
         }
 
         /// <summary>
@@ -576,6 +599,8 @@ namespace KFiler
         /// <param name="path"></param>
         private void textFileOpen(string path)
         {
+            if (!File.Exists(path))
+                path = "";
             if (mTextEditorDlg != null)
                 mTextEditorDlg.Close();
             mTextEditorDlg = new InputBox();
@@ -586,6 +611,7 @@ namespace KFiler
             mTextEditorDlg.mReadOnly    = false;
             mTextEditorDlg.mFilePath    = path;
             mTextEditorDlg.mMultiLine   = true;
+            mTextEditorDlg.mWindowSizeOutSet = true;
             mTextEditorDlg.mTextRapping = false;
             mTextEditorDlg.mCalcMenu       = true;
             mTextEditorDlg.mHexCalcMenu    = true;
@@ -611,6 +637,23 @@ namespace KFiler
                 mImageView.mImagePath = path;
                 mImageView.Show();
             }
+        }
+
+        /// <summary>
+        /// バイナリビューワを開く
+        /// </summary>
+        /// <param name="path"></param>
+        private void binView(string path)
+        {
+            if (!File.Exists(path))
+                path = "";
+            if (mBinView != null)
+                mBinView.Close();
+            mBinView = new BinView();
+            mBinView.Owner = this;
+            mBinView.mBinFilePath = path;
+            mBinView.Show();
+
         }
 
         /// <summary>
@@ -641,6 +684,42 @@ namespace KFiler
                         ylib.messageBox(this, yfile.mErrorMessage, "extract GZ Error");
                 }
             }
+        }
+
+        /// <summary>
+        /// Tarファイルを解凍する
+        /// </summary>
+        /// <param name="tarPath">Tarファイルパス</param>
+        /// <param name="extractFolder">解凍先フォルダ</param>
+        private void extractTar(string tarPath, string extractFolder)
+        {
+            if (extractFolder.Length > 0) {
+                if (!yfile.tarExtract(tarPath, extractFolder, true)) {
+                    if (yfile.mError)
+                        ylib.messageBox(this, yfile.mErrorMessage, "extractZip Error");
+                }
+            }
+        }
+
+        /// <summary>
+        /// フォルダの選択ダイヤログ
+        /// </summary>
+        /// <param name="title">タイトル</param>
+        /// <param name="folderListPath">フォルダパスリスト</param>
+        /// <returns></returns>
+        private string selectTargetFolder(string title, string folderListPath)
+        {
+            InputSelect dlg = new InputSelect();
+            dlg.Title = title;
+            //dlg.Topmost = true;
+            dlg.Owner = this;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            dlg.mInputType = InputSelect.InputType.FOLDER;
+            dlg.mTextList = yfile.loadListData(folderListPath);
+            if (dlg.ShowDialog() != true)
+                return "";
+            yfile.saveListData(folderListPath, dlg.mTextList);
+            return dlg.mText;
         }
 
         /// <summary>
@@ -696,7 +775,7 @@ namespace KFiler
                 );
             mWatcher.Filter = "";            //すべてのファイルを監視
             mWatcher.IncludeSubdirectories = false;
-            //m_Watcher.SynchronizingObject = this;   //UIのスレッドにマーシャリングするコンソールアプリケーションでの使用では必要ない
+            //mWatcher.SynchronizingObject = this;   //UIのスレッドにマーシャリングするコンソールアプリケーションでの使用では必要ない
 
             //イベントハンドラの追加
             mWatcher.Changed += new System.IO.FileSystemEventHandler(watcher_Changed);
@@ -709,6 +788,8 @@ namespace KFiler
             //  Console.WriteLine("監視を開始しました。");
         }
 
+        private static DateTime lastReadTime = DateTime.MinValue;
+
         /// <summary>
         /// フォルダ変更があったとき
         /// </summary>
@@ -717,6 +798,8 @@ namespace KFiler
         private void watcher_Changed(System.Object source, System.IO.FileSystemEventArgs e)
         {
             Debug.WriteLine("watcher_Changed : " + e.ChangeType.ToString());
+            DateTime currentReadTime = DateTime.Now;
+            if ((currentReadTime - lastReadTime).TotalMilliseconds < 500) return;
             fileListUpdate();
             Debug.WriteLine("watcher_Changed : End");
             //switch (e.ChangeType) {
@@ -730,6 +813,7 @@ namespace KFiler
             //        Console.WriteLine("ファイル 「" + e.FullPath + "」が削除されました。");
             //        break;
             //}
+            lastReadTime = currentReadTime;
         }
 
         /// <summary>

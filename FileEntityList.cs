@@ -1,7 +1,5 @@
 ﻿using CoreLib;
-using System.Diagnostics;
 using System.IO;
-using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
 namespace KFiler

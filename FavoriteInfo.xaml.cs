@@ -10,10 +10,10 @@ namespace KFiler
     /// </summary>
     public partial class FavoriteInfo : Window
     {
-        public FavoriteItem mItem;
-        public List<string> mCategoryList;
-        public List<string> mApplicationList = new List<string>();
-        private string mApplicationListPath = "ApplicationList.csv";
+        public FavoriteItem mItem;                                  //  お気に入りデータ
+        public List<string> mCategoryList;                          //  分類リスト
+        public List<string> mApplicationList = new List<string>();  //  アプリケーションリスト
+        private string mApplicationListPath = "ApplicationList.csv";//  アプリケーションリストファイルパス
 
         private YLib ylib = new YLib();
         private YFile yfile = new YFile();
@@ -43,12 +43,14 @@ namespace KFiler
             tbSize.Text = mItem.mSize;
             tbPath.Text = mItem.mPath;
             cbApplication.Text = mItem.mApplication;
-            FileInfo fi = new FileInfo(mItem.mPath);
-            if (fi.Exists) {
-                tbDateTime.Text = fi.LastWriteTime.ToString();
-                tbSize.Text = fi.Length.ToString("N0");
+            if (mItem.mPath != null && mItem.mPath != "") {
+                FileInfo fi = new FileInfo(mItem.mPath);
+                if (fi.Exists) {
+                    tbDateTime.Text = fi.LastWriteTime.ToString();
+                    tbSize.Text = fi.Length.ToString("N0");
+                }
             }
-            
+
             cbApplication.Items.Clear();
             for (int i = 0; i < mApplicationList.Count && i < 100; i++)
                 cbApplication.Items.Add(mApplicationList[i]);
@@ -74,7 +76,9 @@ namespace KFiler
             Char[] trimChar = { ',', ' ' };
             SelectMenu dlg = new SelectMenu();
             dlg.Title = "分類の選択";
-            dlg.mMenuList = mCategoryList.ToArray();
+            dlg.Owner = this;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            dlg.mMenuList = mCategoryList.Skip(1).ToArray();
             if (dlg.ShowDialog() == true) {
                 tbCategory.Text = (tbCategory.Text + "," + dlg.mSelectItem).Trim(trimChar);
             }
@@ -97,6 +101,7 @@ namespace KFiler
             mItem.mFolder = Path.GetDirectoryName(mItem.mPath);
             mItem.mApplication = cbApplication.Text.Trim(trimChar);
             addApplicationPath(cbApplication.Text);
+            DialogResult = true;
             Close();
         }
 
@@ -107,6 +112,7 @@ namespace KFiler
         /// <param name="e"></param>
         private void btCancel_Click(object sender, RoutedEventArgs e)
         {
+            DialogResult = false;
             Close();
         }
 
