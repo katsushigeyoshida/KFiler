@@ -3,7 +3,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Shapes;
 
 namespace KFiler
 {
@@ -53,6 +52,9 @@ namespace KFiler
                 } else if (menuItem.Name == "lvFavoriteBinViewMenu") {
                     //  内部バイナリビューワ
                     binView(item.mPath);
+                } else if (menuItem.Name == "lvFavoriteFolderOpenMenu") {
+                    //  フォルダを開く
+                    treeExpand(item.mFolder);
                 } else if (menuItem.Name == "lvAddCategoryMenu") {
                     //  分類追加
                     ret = addCategory(fileList);
@@ -68,7 +70,6 @@ namespace KFiler
             }
         }
 
-
         /// <summary>
         /// カラムヘッダーでソート
         /// https://learn.microsoft.com/ja-jp/dotnet/desktop/wpf/data/how-to-sort-data-in-a-view
@@ -80,7 +81,8 @@ namespace KFiler
         private void lvFavoriteListColumnHeader_Click(object sender, RoutedEventArgs e)
         {
             var headerClicked = e.OriginalSource as GridViewColumnHeader;
-            if (headerClicked == null || headerClicked.Role == GridViewColumnHeaderRole.Padding) return;
+            if (headerClicked == null || headerClicked.Role == GridViewColumnHeaderRole.Padding)
+                return;
             string header = headerClicked.Column.Header.ToString();
 
             setFavoriteListSortDisp(header);
@@ -131,6 +133,7 @@ namespace KFiler
                     case Key.C: fileDropCopy(fileList); break;                  //  クリップボードにファイルコピー
                     case Key.E: textFileOpen(path); break;                      //  Text Editor
                     case Key.G: imageView(path); break;                         //  内部イメージビューワ
+                    case Key.M: treeExpand(favItem.mFolder); break;             //  フォルダに移動
                     case Key.O: openFavorite(favItem); break;                   //  開く
                     case Key.P: zipCompress(fileList); break;                   //  ファイル圧縮
                     case Key.X: fileDropCopy(fileList, true); break;            //  クリップボードのファイルカット
@@ -142,7 +145,6 @@ namespace KFiler
                     case Key.D: ret = mFavoriteList.removeItem(fileList);       //  お気に入り削除
                                 break;
                     case Key.H: ret = editFevoriteInfo(favItem); break;         //  お気に入り編集
-
                     case Key.M: fileCopy(fileList, mCurFolder, true); break;    //  ファイル移動ダイヤログ
                     case Key.S: ret = addCategory(fileList); break;             //  分類追加
                     case Key.T: Directory.SetCurrentDirectory(favItem.mFolder); //  ターミナルで開く

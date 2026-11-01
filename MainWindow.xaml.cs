@@ -17,6 +17,7 @@ namespace KFiler
         private DirectoryTree mDirectoryTree;
         private FileEntityList mFileEntityList = new FileEntityList();
         private FavoriteList mFavoriteList = new FavoriteList();
+        private FindFile mFindFile = new FindFile();
 
         private string mCurFolder = "";                     //  カレントフォルダ
         private DiffFolder mDiffFolder;                     //  フォルダ比較ダイヤログ
@@ -58,8 +59,12 @@ namespace KFiler
             favoriteListRedisp();
             cbSelectCategory.SelectedIndex = 0;
 
+            setFindFileNameFolder();
+            mFindFile.callback = findFileDisp;
+
             stbFileList.Visibility     = Visibility.Visible;
             stbFavoriteList.Visibility = Visibility.Collapsed;
+            stbFindFileList.Visibility = Visibility.Collapsed;
         }
 
         /// <summary>
@@ -85,9 +90,11 @@ namespace KFiler
                 mFileCopyDialog.Close();
             if (mDiffFolder != null)
                 mDiffFolder.Close();
-            ClearFolderWatch();
+            //ClearFolderWatch();
             saveFolderList(mFolderListPath);
             mFavoriteList.saveList();
+            mFindFile.saveFindFIleFolderList();
+            mFindFile.saveFindFIleNameList();
             WindowFormSave();
         }
 
@@ -158,6 +165,7 @@ namespace KFiler
         /// <param name="e"></param>
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine($"Window_PreviewKeyDown: {e.Key} {e.KeyboardDevice.Modifiers}");
             List<string> fileList = new List<string>();
             TabItem tabItem = (TabItem)tabListView.SelectedItem;
             bool ret = false;
@@ -167,12 +175,13 @@ namespace KFiler
             } else if (tabItem.Name == "tabFavoriteList") {
                 //  お気に入りリストキー入力処理
                 ret = favoriteListKeyOperation(e.Key, e.KeyboardDevice.Modifiers);
+            } else if (tabItem.Name == "tabFindFileList") {
+                ret = findFileListKeyOperation(e.Key, e.KeyboardDevice.Modifiers);
             }
             if (ret)
                 return;
 
             //  ファイル選択無関係のキー処理
-            ClearFolderWatch();
             if (e.KeyboardDevice.Modifiers == ModifierKeys.Control) {
                 //  Ctrl+ ?
                 switch (e.Key) {
@@ -299,10 +308,16 @@ namespace KFiler
             if (item.Name == "tabFileList") {
                 stbFileList.Visibility = Visibility.Visible;
                 stbFavoriteList.Visibility = Visibility.Collapsed;
+                stbFindFileList.Visibility = Visibility.Collapsed;
             } else if (item.Name == "tabFavoriteList") {
-                ClearFolderWatch();                                 //  フォルダ監視停止
                 stbFileList.Visibility = Visibility.Collapsed;
                 stbFavoriteList.Visibility = Visibility.Visible;
+                stbFindFileList.Visibility = Visibility.Collapsed;
+            } else if (item.Name == "tabFindFileList") {
+                stbFileList.Visibility = Visibility.Collapsed;
+                stbFavoriteList.Visibility = Visibility.Collapsed;
+                stbFindFileList.Visibility = Visibility.Visible;
+                setFindFileFolder(mCurFolder);
             }
         }
 
@@ -326,6 +341,8 @@ namespace KFiler
                 tabFileList.IsSelected = true;
             if (tabName == "tabFavoriteList")
                 tabFavoriteList.IsSelected = true;
+            if (tabName == "tabFindFileList")
+                tabFindFileList.IsSelected = true;
         }
 
         /// <summary>
@@ -342,5 +359,17 @@ namespace KFiler
                 favoriteListRedisp();
             }
         }
+
+        /// <summary>
+        /// お気に入りにファイルを登録
+        /// </summary>
+        private void addFavoriteDocument(List<string> fileList)
+        {
+            foreach (string path in fileList) {
+                mFavoriteList.setPath(path);
+            }
+            favoriteListRedisp();
+        }
+
     }
 }

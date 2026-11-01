@@ -14,11 +14,11 @@
         <Label Content="比較先" Margin="10,50,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
         <TextBox Name="tbDstFolder" Margin="70,52,40,0" VerticalAlignment="Top" MouseDoubleClick="tbDstFolder_MouseDoubleClick"/>
         <Label Content="対象ファイル" Margin="5,70,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <TextBox x:Name="tbTargetFile" Margin="70,75,0,0" Width="100" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <Label Content="除外ファイル" Margin="200,70,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <TextBox x:Name="tbExceptFile" Margin="270,75,0,0" Width="100" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <Label Content="除外フォルダ" Margin="400,70,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <TextBox x:Name="tbExceptFolder" Margin="470,75,0,0" Width="100" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbTargetFile" Margin="70,75,0,0" Width="140" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label Content="除外ファイル" Margin="210,70,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbExceptFile" Margin="280,75,0,0" Width="140" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <Label Content="除外フォルダ" Margin="420,70,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        <TextBox x:Name="tbExceptFolder" Margin="490,75,0,0" Width="140" HorizontalAlignment="Left" VerticalAlignment="Top"/>
         <DataGrid x:Name="dgDiffFolder" Margin="0,100,0,30" IsReadOnly="False" AutoGenerateColumns="False" MouseDoubleClick="dgDiffFolder_MouseDoubleClick">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ファイル名" Binding="{Binding mFileName}" IsReadOnly="True" />

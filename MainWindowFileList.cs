@@ -369,13 +369,12 @@ namespace KFiler
         /// <summary>
         /// ファイルリストの再表示
         /// </summary>
-        private void fileListRedisp()
+        private async void fileListRedisp()
         {
-            //this.Dispatcher.Invoke((Action)(() => {
-                lvFileList.Items.Clear();
-                foreach (var fileEntity in mFileEntityList.mFiles)
-                    lvFileList.Items.Add(fileEntity);
-            //}));
+            lvFileList.Items.Clear();
+            foreach (var fileEntity in mFileEntityList.mFiles) {
+                lvFileList.Items.Add(fileEntity);
+            }
         }
 
         /// <summary>
@@ -432,6 +431,7 @@ namespace KFiler
             mFileCopyDialog.mSrcRemove = move;
             mFileCopyDialog.mCallBackOn = true;
             mFileCopyDialog.callback = fileListUpdate;
+            mFileCopyDialog.mFileDiffTool = "";
             mFileCopyDialog.Show();
         }
 
@@ -797,11 +797,12 @@ namespace KFiler
         /// <param name="e"></param>
         private void watcher_Changed(System.Object source, System.IO.FileSystemEventArgs e)
         {
-            Debug.WriteLine("watcher_Changed : " + e.ChangeType.ToString());
             DateTime currentReadTime = DateTime.Now;
-            if ((currentReadTime - lastReadTime).TotalMilliseconds < 500) return;
+            Debug.WriteLine($"watcher_Changed : {e.ChangeType.ToString()} {(currentReadTime - lastReadTime).TotalMilliseconds}");
+            if ((currentReadTime - lastReadTime).TotalMilliseconds < 1000) return;
             fileListUpdate();
             Debug.WriteLine("watcher_Changed : End");
+            lastReadTime = currentReadTime;
             //switch (e.ChangeType) {
             //    case System.IO.WatcherChangeTypes.Changed:
             //        Console.WriteLine("ファイル 「" + e.FullPath + "」が変更されました。");
@@ -813,7 +814,6 @@ namespace KFiler
             //        Console.WriteLine("ファイル 「" + e.FullPath + "」が削除されました。");
             //        break;
             //}
-            lastReadTime = currentReadTime;
         }
 
         /// <summary>

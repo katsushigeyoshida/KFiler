@@ -34,12 +34,6 @@
                     <Button Name="btCompareFolder" Click="btFileOpration_Click" ToolTip="フォルダ同士の比較ダイヤログを開く"  >
                         <Image Source="Icon/Compare.gif" Width="15" Height="15" />
                     </Button>
-                    <Button Name="btFileSearch" Click="btFileOpration_Click"  >
-                        <Image Source="Icon/Search.gif" Width="15" Height="15" />
-                    </Button>
-                    <Button Name="btGrep" Click="btFileOpration_Click"  >
-                        <Image Source="/Icon/SearchWord.gif" Width="15" Height="15" />
-                    </Button>
                     <Button x:Name="btAddDocument" ToolTip="選択ドキュメントをお気に入りに登録" Click="btFileOpration_Click"  >
                         <Image Source="/Icon/AddDocument.png" Width="15" Height="15" />
                     </Button>
@@ -53,6 +47,18 @@
                     </Button>
                     <Button x:Name="btRemoveFavoriteItem" ToolTip="選択した項目をリストから削除する" Click="btFavoriteList_Click" >
                         <Image Source="/Icon/DeleteDocument.png" Width="15" Height="15" />
+                    </Button>
+                </StatusBar>
+                <StatusBar Name="stbFindFileList"  >
+                    <TextBlock Text="検索フォルダ" Margin="10,0,0,0" />
+                    <ComboBox Name="cbSelectFindFileFolder" Width="180" />
+                    <TextBlock Text="検索ファイル" Margin="0,0,0,0" />
+                    <ComboBox Name="cbFindFileName" IsEditable="True" Width="150" />
+                    <Button Name="btFileSearch" Click="btFileSearch_Click"  >
+                        <Image Source="Icon/Search.gif" Width="15" Height="15" />
+                    </Button>
+                    <Button Name="btGrep" Click="btGrep_Click"  >
+                        <Image Source="/Icon/SearchWord.gif" Width="15" Height="15" />
                     </Button>
                 </StatusBar>
             </StackPanel>
@@ -160,14 +166,14 @@
                             </ListView.ItemContainerStyle>
                             <ListView.View>
                                 <GridView>
-                                        <GridViewColumn Width="Auto" Header="分類">
-                                            <GridViewColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock TextAlignment="Left" Text="{Binding mCategory}" />
-                                                </DataTemplate>
-                                            </GridViewColumn.CellTemplate>
-                                        </GridViewColumn>
-                                        <GridViewColumn Width="Auto" Header="タイトル">
+                                    <GridViewColumn Width="Auto" Header="分類">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock TextAlignment="Left" Text="{Binding mCategory}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="Auto" Header="タイトル">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
@@ -176,14 +182,14 @@
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
-                                        <GridViewColumn Width="Auto" Header="種別">
-                                            <GridViewColumn.CellTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock TextAlignment="Left" Text="{Binding mExtension}" />
-                                                </DataTemplate>
-                                            </GridViewColumn.CellTemplate>
-                                        </GridViewColumn>
-                                        <GridViewColumn Width="120" Header="日時">
+                                    <GridViewColumn Width="Auto" Header="種別">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock TextAlignment="Left" Text="{Binding mExtension}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="120" Header="日時">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
                                                 <TextBlock TextAlignment="Right" Text="{Binding mDateTime}" />
@@ -219,11 +225,70 @@
                                     <MenuItem Name="lvFavoriteEditorMenu"    Header="内部エディタ [Ctrl+E]" Click="lvFavoriteList_MenuItem_Click" />
                                     <MenuItem Name="lvFavoriteImageViewMenu" Header="内部イメージビューワ [Ctrl+G]" Click="lvFavoriteList_MenuItem_Click" />
                                     <MenuItem Name="lvFavoriteBinViewMenu"   Header="内部バイナリビューワ [Ctrl+B]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteFolderOpenMenu" Header="フォルダを開く [Ctrl+M]" Click="lvFavoriteList_MenuItem_Click" />
                                     <MenuItem Name="lvAddCategoryMenu"       Header="分類追加  [S]" Click="lvFavoriteList_MenuItem_Click" />
                                     <MenuItem Name="lvFavoriteEditMenu"      Header="編集  [H]" Click="lvFavoriteList_MenuItem_Click" />
                                     <MenuItem Name="lvFavoriteRemoveMenu"    Header="削除  [D]" Click="lvFavoriteList_MenuItem_Click" />
                                 </ContextMenu>
                             </ListView.ContextMenu>
+                            </ListView>
+                        </TabItem>
+                        <TabItem Name="tabFindFileList" Header="検索ファイルリスト" ToolTip="よく使うファイルの登録リスト">
+                            <ListView Name="lvFindFileList" MouseDoubleClick="lvFindFileList_MouseDoubleClick" 
+                                      GridViewColumnHeader.Click="lvFindFileListColumnHeader_Click" PreviewKeyDown="lvFindFileList_PreviewKeyDown" >
+                                <ListView.ItemContainerStyle>
+                                    <Style TargetType="ListViewItem">
+                                        <!-- ListView の列（セル）に左揃え・中央揃え・右揃えを設定するのに必要な定義 -->
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    </Style>
+                                </ListView.ItemContainerStyle>
+                                <ListView.View>
+                                    <GridView>
+                                        <GridViewColumn Width="Auto" Header="ファイル名">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock HorizontalAlignment="Left" Text="{Binding mName}" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="120" Header="日時">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock TextAlignment="Right" Text="{Binding mDateTime}" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="Auto" Header="サイズ">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Width="Auto" HorizontalAlignment="Right" Text="{Binding mSize}" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                        <GridViewColumn Width="Auto" Header="フォルダ">
+                                            <GridViewColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock HorizontalAlignment="Left" Text="{Binding mFolder}" />
+                                                </DataTemplate>
+                                            </GridViewColumn.CellTemplate>
+                                        </GridViewColumn>
+                                    </GridView>
+                                </ListView.View>
+                                <ListView.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Name="lvFindFileOpenMenu"       Header="開く [Ctrl+O]" Click="lvFindFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvFindFileFavoriteMenu"   Header="お気に入りに登録 [Ctrl+S]" Click="lvFindFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvFindFileEditorMenu"     Header="内部エディタ [Ctrl+E]" Click="lvFindFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvFindFileImageViewMenu"  Header="内部イメージビューワ [Ctrl+G]" Click="lvFindFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvFindFileBinViewMenu"    Header="内部バイナリビューワ [Ctrl+B]" Click="lvFindFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvFindFileFolderOpenMenu" Header="フォルダを開く [Ctrl+M]" Click="lvFindFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvFindFileCompressMenu"   Header="ファイル圧縮 [Ctrl+P]" Click="lvFindFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvFindFileDeCompressMenu" Header="ファイル解凍 [Ctrl+U]" Click="lvFindFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvFindFileCopyMenu"       Header="コピー [C]" Click="lvFindFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvFindFileMoveMenu"       Header="移動 [M]" Click="lvFindFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvFindFileRemoveMenu"     Header="削除  [D]" Click="lvFindFileList_MenuItem_Click" />
+                                    </ContextMenu>
+                                </ListView.ContextMenu>
                             </ListView>
                         </TabItem>
                     </TabControl>
