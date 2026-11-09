@@ -44,7 +44,7 @@
 ・ターミナルを開く  
 
 #### ファイル検索リスト表示
-<img src="Image/MainWindowFindFIle.png" width="80%">  
+<img src="Image/MainWindowFindFile.png" width="80%">  
 
 ## 機能
 ・検索フォルダとファイル名(ワイルドカード)を指定して検索  
