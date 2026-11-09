@@ -39,6 +39,17 @@
                     </Button>
                 </StatusBar>
                 <StatusBar Name="stbFavoriteList"  >
+                    <TextBlock Text="大分類" Margin="10,0,0,0" />
+                    <ComboBox Name="cbSelectGenre" Width="100" SelectionChanged="cbSelectGenre_SelectionChanged" 
+                              ToolTip="大分類でリストを切り替える" >
+                        <ComboBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Name="cbCreateMenu"  Header="作成" Click="cbGenreMenuItem_Click" />
+                                <MenuItem Name="cbRenameMenu"  Header="名前の変更" Click="cbGenreMenuItem_Click" />
+                                <MenuItem Name="cbDeleteMenu"  Header="削除" Click="cbGenreMenuItem_Click" />
+                            </ContextMenu>
+                        </ComboBox.ContextMenu>
+                    </ComboBox>
                     <TextBlock Text="分類名" Margin="10,0,0,0" />
                     <ComboBox Name="cbSelectCategory" Width="150" SelectionChanged="cbSelectCategory_SelectionChanged" 
                               ToolTip="分類の選択でリストのフィルタリングをする" />
@@ -53,11 +64,11 @@
                     <TextBlock Text="検索フォルダ" Margin="10,0,0,0" />
                     <ComboBox Name="cbSelectFindFileFolder" Width="180" />
                     <TextBlock Text="検索ファイル" Margin="0,0,0,0" />
-                    <ComboBox Name="cbFindFileName" IsEditable="True" Width="150" />
+                    <ComboBox Name="cbFindFileName" IsEditable="True" Width="120" />
                     <Button Name="btFileSearch" Click="btFileSearch_Click"  >
                         <Image Source="Icon/Search.gif" Width="15" Height="15" />
                     </Button>
-                    <Button Name="btGrep" Click="btGrep_Click"  >
+                    <Button Name="btGrep" Click="btGrep_Click" IsEnabled="False" >
                         <Image Source="/Icon/SearchWord.gif" Width="15" Height="15" />
                     </Button>
                 </StatusBar>
@@ -145,7 +156,7 @@
                                         </MenuItem>
                                         <MenuItem Name="lvAddFavoriteMenu" Header="お気に入りに追加 [Ctrl+S]" Click="lvFileList_MenuItem_Click" />
                                         <MenuItem Name="lvEditorMenu"      Header="内部エディタ [Ctrl+E]" Click="lvFileList_MenuItem_Click" />
-                                        <MenuItem Name="lvImageViewMenu"     Header="内部イメージビューワ [Ctrl+G]" Click="lvFileList_MenuItem_Click" />
+                                        <MenuItem Name="lvImageViewMenu"   Header="内部イメージビューワ [Ctrl+G]" Click="lvFileList_MenuItem_Click" />
                                         <MenuItem Name="lvBinViewMenu"     Header="内部バイナリビューワ [Ctrl+B]" Click="lvFileList_MenuItem_Click" />
                                         <MenuItem Name="lvOpenMenu"        Header="開く  [Ctrl+O]" Click="lvFileList_MenuItem_Click" />
                                         <MenuItem Name="lvReDispMenu"      Header="表示更新 [Ctrl+R]" Click="lvFileList_MenuItem_Click" />
@@ -221,14 +232,17 @@
                             </ListView.View>
                             <ListView.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Name="lvFavoriteOpenMenu"      Header="開く [Ctrl+O]" Click="lvFavoriteList_MenuItem_Click" />
-                                    <MenuItem Name="lvFavoriteEditorMenu"    Header="内部エディタ [Ctrl+E]" Click="lvFavoriteList_MenuItem_Click" />
-                                    <MenuItem Name="lvFavoriteImageViewMenu" Header="内部イメージビューワ [Ctrl+G]" Click="lvFavoriteList_MenuItem_Click" />
-                                    <MenuItem Name="lvFavoriteBinViewMenu"   Header="内部バイナリビューワ [Ctrl+B]" Click="lvFavoriteList_MenuItem_Click" />
-                                    <MenuItem Name="lvFavoriteFolderOpenMenu" Header="フォルダを開く [Ctrl+M]" Click="lvFavoriteList_MenuItem_Click" />
-                                    <MenuItem Name="lvAddCategoryMenu"       Header="分類追加  [S]" Click="lvFavoriteList_MenuItem_Click" />
-                                    <MenuItem Name="lvFavoriteEditMenu"      Header="編集  [H]" Click="lvFavoriteList_MenuItem_Click" />
-                                    <MenuItem Name="lvFavoriteRemoveMenu"    Header="削除  [D]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteOpenMenu"        Header="開く [Ctrl+O]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteEditorMenu"      Header="内部エディタ [Ctrl+E]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteImageViewMenu"   Header="内部イメージビューワ [Ctrl+G]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteBinViewMenu"     Header="内部バイナリビューワ [Ctrl+B]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteGenreCopyMenu"   Header="大分類のコピー  [R]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteGenreMoveMenu"   Header="大分類の移動  [M]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteFolderOpenMenu"  Header="フォルダを開く [Ctrl+M]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteAddCategoryMenu" Header="分類追加  [S]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteEditMenu"        Header="編集  [H]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteFileCopyMenu"    Header="ファイルコピー  [C]" Click="lvFavoriteList_MenuItem_Click" />
+                                    <MenuItem Name="lvFavoriteRemoveMenu"      Header="リストから削除  [D]" Click="lvFavoriteList_MenuItem_Click" />
                                 </ContextMenu>
                             </ListView.ContextMenu>
                             </ListView>

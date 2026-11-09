@@ -8,7 +8,6 @@ namespace KFiler
 {
     public partial class MainWindow : Window
     {
-
         /// <summary>
         /// お気に入りリストダブルクリック
         /// </summary>
@@ -31,10 +30,13 @@ namespace KFiler
         {
             MenuItem menuItem = (MenuItem)e.Source;
             List<string> fileList = new List<string>();
+            List<FavoriteItem> itemList = new List<FavoriteItem>();
             if (0 < lvFavoriteList.SelectedItems.Count) {
                 //  複数選択
-                foreach (FavoriteItem item in lvFavoriteList.SelectedItems)
+                foreach (FavoriteItem item in lvFavoriteList.SelectedItems) {
                     fileList.Add(item.mPath);
+                    itemList.Add(item);
+                }
             }
             int index = lvFavoriteList.SelectedIndex;
             if (0 <= index) {
@@ -55,12 +57,21 @@ namespace KFiler
                 } else if (menuItem.Name == "lvFavoriteFolderOpenMenu") {
                     //  フォルダを開く
                     treeExpand(item.mFolder);
-                } else if (menuItem.Name == "lvAddCategoryMenu") {
+                } else if (menuItem.Name == "lvFavoriteAddCategoryMenu") {
                     //  分類追加
                     ret = addCategory(fileList);
                 } else if (menuItem.Name == "lvFavoriteEditMenu") {
                     //  データの編集
                     ret = editFevoriteInfo(item);
+                } else if (menuItem.Name == "lvFavoriteGenreCopyMenu") {
+                    //  大分類のコピー
+                    ret = moveFavoriteGenre(itemList);
+                } else if (menuItem.Name == "lvFavoriteGenreMoveMenu") {
+                    //  大分類の移動
+                    ret = moveFavoriteGenre(itemList, true);
+                } else if (menuItem.Name == "lvFavoriteFileCopyMenu") {
+                    //  ファイルコピー
+                    fileCopy(fileList, mCurFolder);
                 } else if (menuItem.Name == "lvFavoriteRemoveMenu") {
                     //  削除
                     ret = mFavoriteList.removeItem(fileList);
@@ -89,6 +100,41 @@ namespace KFiler
         }
 
         /// <summary>
+        /// 大分類の選択
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void cbSelectGenre_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            int index = cbSelectGenre.SelectedIndex;
+            if (0 <= index) {
+                mFavoriteList.chengeGenre(cbSelectGenre.Items[index].ToString());
+                mFavoriteList.makeCategory();
+                favoriteListRedisp();
+            }
+        }
+
+        /// <summary>
+        /// 大分類のコンテキストメニュー
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void cbGenreMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem menuItem = (MenuItem)e.Source;
+            if (menuItem.Name.CompareTo("cbCreateMenu") == 0) {
+                //  作成
+                createFavoriteGenre();
+            } else if (menuItem.Name.CompareTo("cbRenameMenu") == 0) {
+                //  名称変更
+                renameFavoriteGenre(cbSelectGenre.Text);
+            } else if (menuItem.Name.CompareTo("cbDeleteMenu") == 0) {
+                //  削除
+                removeFavoriteGenre(cbSelectGenre.Text);
+            }
+        }
+
+        /// <summary>
         /// 分類の選択
         /// </summary>
         /// <param name="sender"></param>
@@ -102,6 +148,40 @@ namespace KFiler
         }
 
         /// <summary>
+        /// お気に入りツールバーのボタン
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void btFavoriteList_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = (Button)sender;
+            List<string> fileList = new List<string>();
+            if (0 < lvFavoriteList.SelectedItems.Count) {
+                //  複数選択
+                foreach (FavoriteItem item in lvFavoriteList.SelectedItems)
+                    fileList.Add(item.mPath);
+            }
+            int index = lvFavoriteList.SelectedIndex;
+            if (0 <= index) {
+                bool ret = false;
+                FavoriteItem item = (FavoriteItem)lvFavoriteList.Items[index];
+                string path = mFavoriteList.mFavoriteList[index].mPath;
+                if (button.Name.CompareTo("btSelectCategpry") == 0) {
+                    //  分類の登録
+                    ret = addCategory(fileList);
+                } else if (button.Name.CompareTo("btEditFavoriteItem") == 0) {
+                    //  データの編集
+                    ret = editFevoriteInfo((FavoriteItem)lvFavoriteList.Items[index]);
+                } else if (button.Name.CompareTo("btRemoveFavoriteItem") == 0) {
+                    //  データの削除
+                    ret = mFavoriteList.removeItem(fileList);
+                }
+                if (ret)
+                    favoriteListRedisp();
+            }
+        }
+
+        /// <summary>
         /// お気に入りリストのキー入力処理
         /// </summary>
         /// <param name="key"></param>
@@ -110,14 +190,17 @@ namespace KFiler
         private bool favoriteListKeyOperation(Key key, ModifierKeys modifierKeys)
         {
             List<string> fileList = new List<string>();
+            List<FavoriteItem> itemList = new List<FavoriteItem>();
             TabItem tabItem = (TabItem)tabListView.SelectedItem;
             FavoriteItem favItem = null;
             //  お気に入りリスト
             if (0 < lvFavoriteList.SelectedItems.Count) {
                 //  複数選択
                 foreach (FavoriteItem item in lvFavoriteList.SelectedItems)
-                    if (File.Exists(item.mPath) || Directory.Exists(item.mPath))
+                    if (File.Exists(item.mPath) || Directory.Exists(item.mPath)) {
                         fileList.Add(item.mPath);
+                        itemList.Add(item);
+                    }
                 favItem = (FavoriteItem)lvFavoriteList.SelectedItems[0];
             }
 
@@ -142,15 +225,16 @@ namespace KFiler
             } else {
                 switch (key) {
                     case Key.C: fileCopy(fileList, mCurFolder); break;          //  ファイル転送ダイヤログ(コピー)
-                    case Key.D: ret = mFavoriteList.removeItem(fileList);       //  お気に入り削除
-                                break;
+                    case Key.D: ret = mFavoriteList.removeItem(fileList); break;//  お気に入り削除
                     case Key.H: ret = editFevoriteInfo(favItem); break;         //  お気に入り編集
-                    case Key.M: fileCopy(fileList, mCurFolder, true); break;    //  ファイル移動ダイヤログ
+                    case Key.M: ret = moveFavoriteGenre(itemList, true); break; //  大分類への移動
+                    case Key.R: moveFavoriteGenre(itemList, false); break;      //  大分類へのコピー
                     case Key.S: ret = addCategory(fileList); break;             //  分類追加
-                    case Key.T: Directory.SetCurrentDirectory(favItem.mFolder); //  ターミナルで開く
-                                ylib.processStart(mTerminal, "");
-                                break;
-                    case Key.Enter: openFavorite(favItem) ; break;              //  開く
+                    case Key.T:                                                 //  ターミナルで開く
+                        Directory.SetCurrentDirectory(favItem.mFolder);
+                        ylib.processStart(mTerminal, "");
+                        break;
+                    case Key.Enter: openFavorite(favItem); break;               //  開く
                     default: return false;
                 }
             }
@@ -158,6 +242,79 @@ namespace KFiler
                 favoriteListRedisp();
 
             return true;
+        }
+
+        /// <summary>
+        /// 大分類の作成
+        /// </summary>
+        private void createFavoriteGenre()
+        {
+            InputBox dlg = new InputBox();
+            dlg.Owner = this;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            dlg.Title = "大分類";
+            if (dlg.ShowDialog() == true)
+                changeFavoriteGenre(dlg.mEditText);
+        }
+
+        /// <summary>
+        /// 大分類の名称変更
+        /// </summary>
+        /// <param name="genre"></param>
+        private void renameFavoriteGenre(string genre)
+        {
+            InputBox dlg = new InputBox();
+            dlg.Owner = this;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            dlg.Title = "大分類";
+            dlg.mEditText = genre;
+            if (dlg.ShowDialog() == true) {
+                renameFavoriteGenre(genre, dlg.mEditText);
+            }
+        }
+
+        /// <summary>
+        /// 大分類の削除
+        /// </summary>
+        /// <param name="genre">大分類</param>
+        private void removeFavoriteGenre(string genre)
+        {
+            if (MessageBox.Show($"{genre} を削除しても良いですか?", "確認", MessageBoxButton.YesNo) == MessageBoxResult.Yes) {
+                mFavoriteList.removeGenre(genre);
+                mFavoriteList.mFavoriteListPath = "";
+                changeFavoriteGenre();
+            }
+        }
+
+        /// <summary>
+        /// 大分類の変更
+        /// </summary>
+        /// <param name="genre">大分類名</param>
+        private void changeFavoriteGenre(string genre = "")
+        {
+            mFavoriteList.chengeGenre(genre);
+            List<string> genres = mFavoriteList.getGenreList();
+            cbSelectGenre.Items.Clear();
+            foreach (string item in genres) {
+                cbSelectGenre.Items.Add(item);
+            }
+            cbSelectGenre.SelectedIndex = cbSelectGenre.Items.IndexOf(genre);
+        }
+
+        /// <summary>
+        /// 大分類の名称変更
+        /// </summary>
+        /// <param name="srcGenre"></param>
+        /// <param name="destGenre"></param>
+        private void renameFavoriteGenre(string srcGenre, string destGenre)
+        {
+            if (mFavoriteList.isGenreExists(destGenre)) {
+                MessageBox.Show($"{destGenre}が存在するので変更できません");
+                return;
+            }
+            if (mFavoriteList.renameGenre(srcGenre, destGenre)) {
+                changeFavoriteGenre(destGenre);
+            }
         }
 
         /// <summary>
@@ -206,40 +363,6 @@ namespace KFiler
         }
 
         /// <summary>
-        /// お気に入りツールバーのボタン
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void btFavoriteList_Click(object sender, RoutedEventArgs e)
-        {
-            Button button = (Button)sender;
-            List<string> fileList = new List<string>();
-            if (0 < lvFavoriteList.SelectedItems.Count) {
-                //  複数選択
-                foreach (FavoriteItem item in lvFavoriteList.SelectedItems)
-                    fileList.Add(item.mPath);
-            }
-            int index = lvFavoriteList.SelectedIndex;
-            if (0 <= index) {
-                bool ret = false;
-                FavoriteItem item = (FavoriteItem)lvFavoriteList.Items[index];
-                string path = mFavoriteList.mFavoriteList[index].mPath;
-                if (button.Name.CompareTo("btSelectCategpry") == 0) {
-                    //  分類の登録
-                    ret = addCategory(fileList);
-                } else if (button.Name.CompareTo("btEditFavoriteItem") == 0) {
-                    //  データの編集
-                    ret = editFevoriteInfo((FavoriteItem)lvFavoriteList.Items[index]);
-                } else if (button.Name.CompareTo("btRemoveFavoriteItem") == 0) {
-                    //  データの削除
-                    ret = mFavoriteList.removeItem(fileList);
-                }
-                if (ret)
-                    favoriteListRedisp();
-            }
-        }
-
-        /// <summary>
         /// 分類名の追加
         /// </summary>
         /// <param name="fileList">ファイルリスト</param>
@@ -274,6 +397,73 @@ namespace KFiler
             dlg.mItem = item;
             dlg.mCategoryList = mFavoriteList.getCategoryList();
             return dlg.ShowDialog() == true;
+        }
+
+        /// <summary>
+        /// 大分類のコピー/移動
+        /// </summary>
+        /// <param name="items"></param>
+        /// <param name="move"></param>
+        /// <returns></returns>
+        private bool moveFavoriteGenre(List<FavoriteItem> items, bool move = false)
+        {
+            string? genre = selectGenre("大分類の" + (move ? "移動" : "コピー"));
+            if (genre != null) {
+                FavoriteList favoriteList = new FavoriteList(genre);
+                foreach (FavoriteItem item in items) {
+                    favoriteList.mFavoriteList.Add(item);
+                    if (move)
+                        mFavoriteList.mFavoriteList.Remove(item);
+                }
+                favoriteList.saveList();
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 大分類の選択
+        /// </summary>
+        /// <param name="title"></param>
+        /// <returns></returns>
+        private string? selectGenre(string title ="")
+        {
+            SelectMenu dlg = new SelectMenu();
+            dlg.Title = title == "" ? "大分類の選択" : title;
+            dlg.mReadOnly = false;
+            dlg.Owner = this;
+            dlg.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            dlg.mMenuList = mFavoriteList.getGenreList().ToArray();
+            if (dlg.ShowDialog() == true)
+                return dlg.mSelectItem;
+            return null;
+        }
+
+        /// <summary>
+        /// 大分類の項目をコンボボックスに設定
+        /// </summary>
+        private void setFavoriteGenre()
+        {
+            List<string> genres = mFavoriteList.getGenreList();
+            cbSelectGenre.Items.Clear();
+            foreach (string item in genres) {
+                cbSelectGenre.Items.Add(item);
+            }
+        }
+
+        /// <summary>
+        /// お気に入りにファイルを登録
+        /// </summary>
+        private void addFavoriteDocument(List<string> fileList)
+        {
+            string? genre = selectGenre();
+            if (genre != null) {
+                changeFavoriteGenre(genre);
+                foreach (string path in fileList) {
+                    mFavoriteList.setPath(path);
+                }
+                favoriteListRedisp();
+            }
         }
 
         /// <summary>

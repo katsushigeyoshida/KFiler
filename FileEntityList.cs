@@ -178,12 +178,12 @@ namespace KFiler
             } else if (sortType == FileEntitySortType.Size) {
                 ret = a.mFileEntityType == b.mFileEntityType ?
                     (int)(sortDirection == FileEntitySortDirection.Ascending ?
-                        a.mLength - b.mLength : b.mLength - a.mLength) :
+                        a.mLength.CompareTo(b.mLength) : b.mLength.CompareTo(a.mLength)) :
                         (a.mFileEntityType == FileEntityType.File ? 1 : -1);
             } else if (sortType == FileEntitySortType.DateTime) {
                 ret = a.mFileEntityType == b.mFileEntityType ?
                     (sortDirection == FileEntitySortDirection.Ascending ?
-                        a.mDateTime.CompareTo(b.mDateTime) : b.mDateTime.CompareTo(a.mDateTime)) :
+                        DateTime.Compare(a.mLastWriteTime, b.mLastWriteTime) : DateTime.Compare(b.mLastWriteTime, a.mLastWriteTime)) :
                         (a.mFileEntityType == FileEntityType.File ? 1 : -1);
             } else if (sortType == FileEntitySortType.Attribute) {
                 ret = a.mFileEntityType == b.mFileEntityType ?

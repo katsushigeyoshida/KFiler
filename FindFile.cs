@@ -14,6 +14,9 @@ namespace KFiler
         public string mSize { get; set; }           //  ファイルサイズ
         public string mFolder { get; set; }         //  ファイルフォルダ
         public string mPath { get; set; }           //  ファイルパス
+        public long mLength { get; set; } = 0;                          //  ファイルサイズ
+        public DateTime mLastWriteTime { get; set; } = DateTime.Now;    //  最終更新日
+
 
         /// <summary>
         /// コンストラクタ
@@ -22,11 +25,13 @@ namespace KFiler
         public FindFileItem(string path)
         {
             FileInfo fi = new FileInfo(path);
-            mName = fi.Name;
+            mName     = fi.Name;
             mDateTime = fi.LastWriteTime.ToString();
-            mSize = fi.Length.ToString("N0");
-            mFolder = fi.DirectoryName!;
-            mPath = fi.FullName;
+            mSize     = fi.Length.ToString("N0");
+            mFolder   = fi.DirectoryName!;
+            mPath     = fi.FullName;
+            mLastWriteTime = fi.LastWriteTime;
+            mLength   = fi.Length;
         }
 
         /// <summary>
@@ -35,11 +40,13 @@ namespace KFiler
         /// <param name="fi">FileInfo</param>
         public FindFileItem(FileInfo fi)
         {
-            mName = fi.Name;
+            mName     = fi.Name;
             mDateTime = fi.LastWriteTime.ToString();
-            mSize = fi.Length.ToString("N0");
-            mFolder = fi.DirectoryName!;
-            mPath = fi.FullName;
+            mSize     = fi.Length.ToString("N0");
+            mFolder   = fi.DirectoryName!;
+            mPath     = fi.FullName;
+            mLastWriteTime = fi.LastWriteTime;
+            mLength   = fi.Length;
         }
     }
 
@@ -191,10 +198,10 @@ namespace KFiler
                         a.mName.CompareTo(b.mName) : b.mName.CompareTo(a.mName);
             } else if (sortType == FileFindSortType.Size) {
                 ret = sortDirection == FileFindSortDirection.Ascending ?
-                        a.mSize.CompareTo(b.mSize) : b.mSize.CompareTo(a.mSize);
+                        a.mLength.CompareTo(b.mLength) : b.mLength.CompareTo(a.mLength);
             } else if (sortType == FileFindSortType.DateTime) {
                 ret = sortDirection == FileFindSortDirection.Ascending ?
-                        a.mDateTime.CompareTo(b.mDateTime) : b.mDateTime.CompareTo(a.mDateTime);
+                        a.mLastWriteTime.CompareTo(b.mLastWriteTime) : b.mLastWriteTime.CompareTo(a.mLastWriteTime);
             } else if (sortType == FileFindSortType.Folder) {
                 ret = sortDirection == FileFindSortDirection.Ascending ?
                         a.mFolder.CompareTo(b.mFolder) : b.mFolder.CompareTo(a.mFolder);

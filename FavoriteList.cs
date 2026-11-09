@@ -23,6 +23,8 @@ namespace KFiler
         public string mDateTime { get; set; } = "";
         public string mSize { get; set; } = "";
         public string mPath { get; set; } = "";
+        public long mLength { get; set; } = 0;                          //  ファイルサイズ
+        public DateTime mLastWriteTime { get; set; } = DateTime.Now;    //  最終更新日
         public string mApplication { get; set; } = "";
 
         /// <summary>
@@ -42,6 +44,8 @@ namespace KFiler
                 mFolder = di.FullName;
                 mDateTime = di.LastWriteTime.ToString();
                 mSize = "";
+                mLastWriteTime = di.LastWriteTime;
+                mLength = 0;
                 mPath = di.FullName;
             } else if (File.Exists(path)) {
                 FileInfo fileInfo = new FileInfo(path);
@@ -54,6 +58,8 @@ namespace KFiler
                     mDateTime = fileInfo.LastWriteTime.ToString();
                     mSize = fileInfo.Length.ToString("N0");
                     mPath = fileInfo.FullName;
+                    mLastWriteTime = fileInfo.LastWriteTime;
+                    mLength = fileInfo.Length;
                 }
             }
         }
@@ -64,15 +70,21 @@ namespace KFiler
         /// <param name="data">文字列データ</param>
         public FavoriteItem(string[] data)
         {
-            mTitle     = data[0];
-            mCategory  = data[1];
-            mName      = data[2];
-            mExtension = data[3];
-            mFolder    = data[4];
-            mDateTime  = data[5];
-            mSize      = data[6];
-            mPath      = data[7];
-            mApplication = data[8];
+            try {
+                mTitle       = data[0];
+                mCategory    = data[1];
+                mName        = data[2];
+                mExtension   = data[3];
+                mFolder      = data[4];
+                mLastWriteTime = DateTime.Parse(data[5]);
+                mLength      = long.Parse(data[6].Replace(",", ""));
+                mPath        = data[7];
+                mApplication = data[8];
+                mDateTime = mLastWriteTime.ToString();
+                mSize = mLength.ToString("N0");
+            } catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine($"FavoriteItem: {e.Message}");
+            }
         }
 
         /// <summary>
@@ -82,7 +94,8 @@ namespace KFiler
         public string[] cnvStringArray()
         {
             string[] data = new string[] {
-                mTitle, mCategory, mName, mExtension, mFolder, mDateTime, mSize, mPath, mApplication
+                mTitle, mCategory, mName, mExtension, mFolder, mLastWriteTime.ToString(),
+                mLength.ToString(), mPath, mApplication
             };
             return data;
         }
@@ -93,13 +106,13 @@ namespace KFiler
     /// </summary>
     public class FavoriteList
     {
-        public List<FavoriteItem> mFavoriteList = new List<FavoriteItem>();
-        public string mFavoriteListPath = "FavoriteList.csv";       //  リストデータ保存パス
-        public string[] mDataTitle = new string[] {                 //  リストデータタイトル
+        public List<FavoriteItem> mFavoriteList = new List<FavoriteItem>(); //  お気に入りデータ
+        public string mFavoriteListPath = "FavoriteList";                   //  リストデータ保存パス
+        public string[] mDataTitle = new string[] {                         //  リストデータタイトル
             "Title", "Category", "Name", "Extension", "Folder", "DateTime", "Size", "Path", "Apprication",
         };
         public Dictionary<FavoriteDataSortType, FavoriteDataSortDirection> mSort = new Dictionary<FavoriteDataSortType, FavoriteDataSortDirection>();
-        public HashSet<string> mCategoryList  = new HashSet<string>();
+        public HashSet<string> mCategoryList  = new HashSet<string>();      //  分類リスト
 
         private YLib ylib = new YLib();
         private YFile yfile = new YFile();
@@ -107,9 +120,10 @@ namespace KFiler
         /// <summary>
         /// コンストラクタ
         /// </summary>
-        public FavoriteList()
+        public FavoriteList(string genre = "")
         {
-            mFavoriteListPath = Path.Combine(ylib.getAppFolderPath(), mFavoriteListPath);
+            mFavoriteListPath = makePath(genre);
+            //mFavoriteListPath = Path.Combine(ylib.getAppFolderPath(), mFavoriteListPath);
             loadList();
             //  ソートカラムの昇順/降順データの登録
             if (!mSort.ContainsKey(FavoriteDataSortType.Title))
@@ -130,6 +144,128 @@ namespace KFiler
                 mSort.Add(FavoriteDataSortType.Path, FavoriteDataSortDirection.Ascending);
             if (!mSort.ContainsKey(FavoriteDataSortType.Application))
                 mSort.Add(FavoriteDataSortType.Application, FavoriteDataSortDirection.Ascending);
+        }
+
+        /// <summary>
+        /// 大分類の切替
+        /// </summary>
+        /// <param name="genre">大分類名</param>
+        public bool chengeGenre(string genre)
+        {
+            saveList();
+            string path = makePath(genre);
+            mFavoriteListPath = path;
+            if (File.Exists(path)) {
+                loadList();
+                return false;
+            } else {
+                mFavoriteList.Clear();
+                mCategoryList.Clear();
+                saveList();
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// 大分類リストの取得
+        /// </summary>
+        /// <returns></returns>
+        public List<string> getGenreList()
+        {
+            string searchpath = GetType().Name + "*.csv";
+            searchpath = Path.Combine(ylib.getAppFolderPath(), searchpath);
+            string[] files = yfile.getFiles(searchpath);
+            List<string> genres = new List<string>();
+            for (int i = 0; i < files.Length; i++)
+                genres.Add(extractGenre(files[i]));
+            return genres;
+        }
+
+        /// <summary>
+        /// 大分類名からパス名の作成
+        /// </summary>
+        /// <param name="genre"></param>
+        /// <returns></returns>
+        private string makePath(string genre)
+        {
+            string name = GetType().Name + (genre == "" ? "" : "_" + genre) + ".csv";
+            return Path.Combine(ylib.getAppFolderPath(), name);
+        }
+
+        /// <summary>
+        /// パス名から大分類名の抽出
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private string extractGenre(string path)
+        {
+            int ps = path.IndexOf('_');
+            int pe = path.IndexOf(".csv");
+            if (ps < 0)
+                return "";
+            return path.Substring(ps + 1, pe - ps - 1);
+        }
+
+        /// <summary>
+        /// 現在の大分類名
+        /// </summary>
+        /// <returns></returns>
+        public string getCurGenre()
+        {
+            return extractGenre(mFavoriteListPath);
+        }
+
+        /// <summary>
+        /// 大分類の存在の有無
+        /// </summary>
+        /// <param name="genre"></param>
+        /// <returns></returns>
+        public bool isGenreExists(string genre)
+        {
+            saveList();
+            string path = makePath(genre);
+            return File.Exists(path);
+        }
+
+        /// <summary>
+        /// 大分類名の変更
+        /// </summary>
+        /// <param name="srcGenre">元の大分類名</param>
+        /// <param name="destGenre">変更後の大分類名</param>
+        /// <returns></returns>
+        public bool renameGenre(string srcGenre, string destGenre)
+        {
+            try {
+                saveList();
+                string srcPath = makePath(srcGenre);
+                string destPath = makePath(destGenre);
+                File.Move(srcPath, destPath);
+                if (getCurGenre() == srcGenre)
+                    mFavoriteListPath = destPath;
+                return true;
+            } catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine($"renameGenre: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 大分類ファイルの削除
+        /// </summary>
+        /// <param name="genre">大分類</param>
+        /// <returns></returns>
+        public bool removeGenre(string genre)
+        {
+            try {
+                saveList();
+                string path = makePath(genre);
+                if (File.Exists(path))
+                    File.Delete(path);
+                return true;
+            } catch (Exception e) {
+                System.Diagnostics.Debug.WriteLine($"removeGenre: {e.Message}");
+                return false;
+            }
         }
 
         /// <summary>
@@ -256,6 +392,8 @@ namespace KFiler
         /// </summary>
         public void loadList()
         {
+            if (mFavoriteListPath == null || mFavoriteListPath == "")
+                return;
             List<string[]> dataList = yfile.loadCsvData(mFavoriteListPath, mDataTitle);
             mFavoriteList.Clear();
             for (int i = 0; i < dataList.Count; i++)
@@ -268,6 +406,8 @@ namespace KFiler
         /// </summary>
         public void saveList()
         {
+            if (mFavoriteListPath == null || mFavoriteListPath == "")
+                return;
             List<string[]> dataList = new List<string[]>();
             for (int i = 0; i < mFavoriteList.Count; i++)
                 dataList.Add(mFavoriteList[i].cnvStringArray());
@@ -317,10 +457,10 @@ namespace KFiler
                         a.mFolder.CompareTo(b.mFolder) : b.mFolder.CompareTo(a.mFolder);
             } else if (sortType == FavoriteDataSortType.DateTime) {
                 ret = sortDirection == FavoriteDataSortDirection.Ascending ?
-                        a.mDateTime.CompareTo(b.mDateTime) : b.mDateTime.CompareTo(a.mDateTime);
+                        a.mLastWriteTime.CompareTo(b.mLastWriteTime) : b.mLastWriteTime.CompareTo(a.mLastWriteTime);
             } else if (sortType == FavoriteDataSortType.Size) {
                 ret = sortDirection == FavoriteDataSortDirection.Ascending ?
-                        a.mSize.CompareTo(b.mSize) : b.mSize.CompareTo(a.mSize);
+                        a.mLength.CompareTo(b.mLength) : b.mLength.CompareTo(a.mLength);
             } else if (sortType == FavoriteDataSortType.Path) {
                 ret = sortDirection == FavoriteDataSortDirection.Ascending ?
                         a.mPath.CompareTo(b.mPath) : b.mPath.CompareTo(a.mPath);

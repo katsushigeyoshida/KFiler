@@ -174,7 +174,7 @@ namespace KFiler
 
                 } else if (menuItem.Name.CompareTo("lvAddFavoriteMenu") == 0) {
                     //  お気に入りに追加
-                    addFavoriteDocument();
+                    addFavoriteDocument(fileList);
                 }
             }
             //  ファイル選択無関係
@@ -264,7 +264,7 @@ namespace KFiler
 
             } else if (button.Name.CompareTo("btAddDocument") == 0) {
                 //  お気に入りに追加
-                addFavoriteDocument();
+                addFavoriteDocument(fileList);
             } else if (button.Name.CompareTo("btUpFolder") == 0) {
                 //  上位フォルダに移動
                 mCurFolder = Path.GetDirectoryName(mCurFolder)!;
@@ -303,7 +303,7 @@ namespace KFiler
                     case Key.O: openFile(path); break;                          //  開く(extractZip)
                     case Key.P: zipCompress(fileList); break;                   //  ファイル圧縮
                     case Key.R: fileListUpdate(); break;                        //  ファイルリストの更新
-                    case Key.S: addFavoriteDocument(); break;                   //  お気に入りに登録
+                    case Key.S: addFavoriteDocument(fileList); break;           //  お気に入りに登録
                     case Key.U: UnPack(fileList);                               //  ファイルの解凍
                                 fileListUpdate();
                                 break;
@@ -555,6 +555,12 @@ namespace KFiler
                 } else if (Path.GetExtension(path).ToLower() == ".tar") {
                     //  tarファイルの解凍
                     extractTar(path, extractFolder);
+                } else if (Path.GetExtension(path).ToLower() == ".lzh" ||
+                    Path.GetExtension(path).ToLower() == ".7z" ||
+                    Path.GetExtension(path).ToLower() == ".msi" ||
+                    Path.GetExtension(path).ToLower() == ".rar") {
+                    //  7z,lzhなどファイルの解凍
+                    yfile.sevenZipExtract(path, extractFolder);
                 }
             }
         }
@@ -603,13 +609,15 @@ namespace KFiler
                 path = "";
             if (mTextEditorDlg != null)
                 mTextEditorDlg.Close();
+            string[] files = yfile.getFiles(Path.Combine(Path.GetDirectoryName(path), "*.*"));
             mTextEditorDlg = new InputBox();
-            mTextEditorDlg.Title = $"エディタ [{Path.GetFileName(path)}]";
             //mTextEditorDlg.Topmost = true;
             mTextEditorDlg.mFontFamily  = "MS Gothic";
             mTextEditorDlg.mFileEdit    = true;
             mTextEditorDlg.mReadOnly    = false;
             mTextEditorDlg.mFilePath    = path;
+            if (1 < files.Length)
+                mTextEditorDlg.mFileList = files.ToList();
             mTextEditorDlg.mMultiLine   = true;
             mTextEditorDlg.mWindowSizeOutSet = true;
             mTextEditorDlg.mTextRapping = false;
@@ -628,7 +636,7 @@ namespace KFiler
             if (Path.GetExtension(path).ToLower() == ".jpg" ||
                 Path.GetExtension(path).ToLower() == ".png") {
                 //  写真表示
-                string[] fileList = yfile.getFiles(Path.GetDirectoryName(path));
+                string[] fileList = yfile.getFiles(Path.Combine(Path.GetDirectoryName(path), "*.*"));
                 if (mImageView != null)
                     mImageView.Close();
                 mImageView = new ImageView();

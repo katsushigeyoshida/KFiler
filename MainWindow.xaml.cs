@@ -14,12 +14,14 @@ namespace KFiler
         private double mWindowWidth;
         private double mWindowHeight;
 
-        private DirectoryTree mDirectoryTree;
-        private FileEntityList mFileEntityList = new FileEntityList();
-        private FavoriteList mFavoriteList = new FavoriteList();
-        private FindFile mFindFile = new FindFile();
+        private DirectoryTree mDirectoryTree;                           //  ディレクトリツリー
+        private FileEntityList mFileEntityList = new FileEntityList();  //  ファイルリスト
+        private FavoriteList mFavoriteList = new FavoriteList();        //  お気に入りリスト
+        private FindFile mFindFile = new FindFile();                    //  ファイル検索
+
 
         private string mCurFolder = "";                     //  カレントフォルダ
+        private string mFavoriteGenre = "";                 //  お気に入り大分類
         private DiffFolder mDiffFolder;                     //  フォルダ比較ダイヤログ
         private FileCopyDialog mFileCopyDialog;             //  ファイルコピーダイヤログ
         private InputBox mTextEditorDlg;                    //  テキスト表示ダイヤログ
@@ -49,20 +51,25 @@ namespace KFiler
 
             WindowFormLoad();
 
+            //  ファイルリスト
             loadFolderList(mFolderListPath);
-
             rootTree();
             mFileEntityList.getFileEntityList(null, mFileFilter);
             setFileListSortDisp();
             statusDisp();
 
+            //  お気に入りリスト
+            setFavoriteGenre();
+            cbSelectGenre.SelectedIndex = cbSelectGenre.Items.IndexOf(mFavoriteGenre);
             favoriteListRedisp();
             cbSelectCategory.SelectedIndex = 0;
 
+            //  ファイル検索
             setFindFileNameFolder();
             mFindFile.callback = findFileDisp;
 
-            stbFileList.Visibility     = Visibility.Visible;
+            //  ツールバーの設定
+            stbFileList.Visibility = Visibility.Visible;
             stbFavoriteList.Visibility = Visibility.Collapsed;
             stbFindFileList.Visibility = Visibility.Collapsed;
         }
@@ -95,6 +102,7 @@ namespace KFiler
             mFavoriteList.saveList();
             mFindFile.saveFindFIleFolderList();
             mFindFile.saveFindFIleNameList();
+            mFavoriteGenre = cbSelectGenre.Text;
             WindowFormSave();
         }
 
@@ -121,6 +129,7 @@ namespace KFiler
                 GridLength ln = new GridLength(Properties.Settings.Default.MainWindowTreeWidth);
                 directoryTree.Width = ln;
             }
+            mFavoriteGenre = Properties.Settings.Default.FavoriteGenre;
         }
 
         /// <summary>
@@ -128,6 +137,7 @@ namespace KFiler
         /// </summary>
         private void WindowFormSave()
         {
+            Properties.Settings.Default.FavoriteGenre = mFavoriteGenre;
             //  Windowの位置とサイズを保存(登録項目をPropeties.settingsに登録して使用する)
             Properties.Settings.Default.MainWindowTop = Top;
             Properties.Settings.Default.MainWindowLeft = Left;
@@ -176,6 +186,7 @@ namespace KFiler
                 //  お気に入りリストキー入力処理
                 ret = favoriteListKeyOperation(e.Key, e.KeyboardDevice.Modifiers);
             } else if (tabItem.Name == "tabFindFileList") {
+                //  ファイル検索リストのキー入力処理
                 ret = findFileListKeyOperation(e.Key, e.KeyboardDevice.Modifiers);
             }
             if (ret)
@@ -185,20 +196,23 @@ namespace KFiler
             if (e.KeyboardDevice.Modifiers == ModifierKeys.Control) {
                 //  Ctrl+ ?
                 switch (e.Key) {
-                    case Key.E: textFileOpen(""); break;           //  Text Editor
-                    case Key.V: fileDropPaste();                   //  クリップボードのファイル貼付け
-                                fileListUpdate();
-                                break;
+                    case Key.E: textFileOpen(""); break;            //  Text Editor
+                    case Key.V:
+                        fileDropPaste();                            //  クリップボードのファイル貼付け
+                        fileListUpdate();
+                        break;
                 }
             } else {
                 switch (e.Key) {
-                    case Key.K: mkDirectory(); 
-                                fileListUpdate(); 
-                                break;         //  フォルダ作成ダイヤログ
-                    case Key.T: if (mCurFolder != null && mCurFolder != "")
-                                    Directory.SetCurrentDirectory(mCurFolder);  //  ターミナルで開く
-                                ylib.processStart(mTerminal, "");
-                                break;
+                    case Key.K:                                     //  フォルダ作成ダイヤログ
+                        mkDirectory();
+                        fileListUpdate();
+                        break;
+                    case Key.T:                                     //  ターミナルで開く
+                        if (mCurFolder != null && mCurFolder != "")
+                            Directory.SetCurrentDirectory(mCurFolder);
+                        ylib.processStart(mTerminal, "");
+                        break;
                 }
             }
         }
@@ -322,16 +336,6 @@ namespace KFiler
         }
 
         /// <summary>
-        /// 選択されているタブ名の取得
-        /// </summary>
-        /// <returns>タブ名</returns>
-        private string getSelctTabName()
-        {
-            TabItem item = (TabItem)tabListView.SelectedItem;
-            return item.Name;
-        }
-
-        /// <summary>
         /// タブの切替
         /// </summary>
         /// <param name="tabName">タブ名</param>
@@ -344,32 +348,5 @@ namespace KFiler
             if (tabName == "tabFindFileList")
                 tabFindFileList.IsSelected = true;
         }
-
-        /// <summary>
-        /// お気に入りにファイルを登録
-        /// </summary>
-        private void addFavoriteDocument()
-        {
-            List<string> fileList = new List<string>();
-            if (0 < lvFileList.SelectedItems.Count) {
-                //  複数選択
-                foreach (FileEntity item in lvFileList.SelectedItems) {
-                    mFavoriteList.setPath(item.mPath);
-                }
-                favoriteListRedisp();
-            }
-        }
-
-        /// <summary>
-        /// お気に入りにファイルを登録
-        /// </summary>
-        private void addFavoriteDocument(List<string> fileList)
-        {
-            foreach (string path in fileList) {
-                mFavoriteList.setPath(path);
-            }
-            favoriteListRedisp();
-        }
-
     }
 }

@@ -79,20 +79,20 @@ namespace KFiler
                             Directory.SetCurrentDirectory(fi.mFolder);
                             ylib.openUrl(fi.mPath);
                             break;
-                        case Key.P: zipCompress(fileList); break;
+                        case Key.P: zipCompress(fileList); break;           //  Zip圧縮
                         case Key.S: addFavoriteDocument(fileList); break;   //  お気に入りに登録
-                        case Key.U: UnPack(fileList); break;
+                        case Key.U: UnPack(fileList); break;                //  解凍
                         case Key.V: break;
-                        case Key.X: fileDropCopy(fileList, true); break;
+                        case Key.X: fileDropCopy(fileList, true); break;    //  ファイルの切取り
                     }
                 } else {
                     switch (e.Key) {
                         case Key.C: fileCopy(fileList, ""); break;          //  ファイルコピー
                         case Key.D: fileRemove(fileList); break;            //  ファイル削除
                         case Key.M: fileCopy(fileList, "", true); break;    //  ファイル移動
-                        case Key.T:
+                        case Key.T:                                         //  ターミナルで開く
                             if (mCurFolder != null && mCurFolder != "")
-                                Directory.SetCurrentDirectory(mCurFolder);  //  ターミナルで開く
+                                Directory.SetCurrentDirectory(mCurFolder);
                             ylib.processStart(mTerminal, "");
                             break;
                         case Key.Enter:                                     //  開く
